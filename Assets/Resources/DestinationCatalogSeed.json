@@ -1,0 +1,54 @@
+{
+  "project": "Lens of Legends: An Open-World Indian Cultural Photography Adventure",
+  "architectureVersion": "1.0.0",
+  "destinations": [
+    {
+      "id": "kerala_theyyam",
+      "title": "North Kerala \u2014 Theyyam in the Sacred Grove",
+      "state": "Kerala (Kannur & Kasaragod)",
+      "status": "PlayableVerticalSlice",
+      "scene": "Theyyam_Ritual_Scene",
+      "verifiedSource": "https://en.wikipedia.org/wiki/Theyyam"
+    },
+    {
+      "id": "varanasi_ghats",
+      "title": "Varanasi \u2014 The Sacred Riverfront",
+      "state": "Uttar Pradesh",
+      "status": "PreviewFutureChapter",
+      "scene": "Varanasi_Ghats_Scene",
+      "verifiedSource": "https://en.wikipedia.org/wiki/Ghats_in_Varanasi"
+    },
+    {
+      "id": "rajasthan_desert",
+      "title": "Rajasthan \u2014 The Desert Festival (Maru Mahotsav)",
+      "state": "Rajasthan (Jaisalmer)",
+      "status": "PreviewFutureChapter",
+      "scene": "Rajasthan_Desert_Scene",
+      "verifiedSource": "https://jaisalmerdesertfestival.rajasthan.gov.in/"
+    },
+    {
+      "id": "kolkata_durgapuja",
+      "title": "Kolkata \u2014 Durga Puja Public Art & Illumination",
+      "state": "West Bengal",
+      "status": "PreviewFutureChapter",
+      "scene": "Kolkata_DurgaPuja_Scene",
+      "verifiedSource": "https://ich.unesco.org/en/RL/durga-puja-in-kolkata-00703"
+    },
+    {
+      "id": "nagaland_hornbill",
+      "title": "Nagaland \u2014 Hornbill Festival at Kisama",
+      "state": "Nagaland (Kohima)",
+      "status": "PreviewFutureChapter",
+      "scene": "Nagaland_Hornbill_Scene",
+      "verifiedSource": "https://tourism.nagaland.gov.in/naga-heritage-village/"
+    },
+    {
+      "id": "ladakh_hemis",
+      "title": "Ladakh \u2014 High Himalayas & Monastic Festivals",
+      "state": "Ladakh",
+      "status": "PreviewFutureChapter",
+      "scene": "Ladakh_Monastic_Scene",
+      "verifiedSource": "https://ignca.gov.in/the-hemis-festival/"
+    }
+  ]
+}
