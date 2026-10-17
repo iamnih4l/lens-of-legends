@@ -28,13 +28,17 @@
 
 <div align="center">
 
-https://github.com/iamnih4l/lens-of-legends/raw/main/Lens%20of%20Legends.mp4
-
-<video src="https://github.com/iamnih4l/lens-of-legends/raw/main/Lens%20of%20Legends.mp4" controls="controls" width="100%" style="max-width: 900px; border-radius: 8px; border: 1.5px solid #eb7a2e; box-shadow: 0 12px 32px rgba(0,0,0,0.65);">
-  Your browser does not support the video tag. <a href="https://github.com/iamnih4l/lens-of-legends/raw/main/Lens%20of%20Legends.mp4">Click here to watch or download the gameplay video (Lens of Legends.mp4)</a>.
+<video src="https://github.com/user-attachments/assets/57775fb1-d31d-41b2-9ea6-9fbfd6a9540d" autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" controls="controls" width="100%" style="max-width: 900px; border-radius: 8px; border: 1.5px solid #eb7a2e; box-shadow: 0 12px 32px rgba(0,0,0,0.65);">
+  <source src="https://github.com/user-attachments/assets/57775fb1-d31d-41b2-9ea6-9fbfd6a9540d" type="video/mp4">
+  Your browser does not support the video tag. <a href="https://github.com/user-attachments/assets/57775fb1-d31d-41b2-9ea6-9fbfd6a9540d">Click here to watch the playthrough video</a>.
 </video>
 
 *Real-time in-engine capture of Chapter I: North Kerala Sacred Grove (Kavu), Meleri fire pit, Chenda percussion, and optical viewfinder simulation.*
+
+<br/>
+
+> 🔁 **Animated Playthrough Preview** (Autoplays and loops seamlessly)  
+> *Source Asset from [GitHub Issue #1](https://github.com/iamnih4l/lens-of-legends/issues/1) • [Direct Video Link](https://github.com/user-attachments/assets/57775fb1-d31d-41b2-9ea6-9fbfd6a9540d)*
 
 </div>
 
