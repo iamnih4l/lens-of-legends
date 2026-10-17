@@ -8,6 +8,7 @@
 [![Render Pipeline](https://img.shields.io/badge/Render%20Pipeline-URP%20%26%20Built--In%20Compatible-green?style=flat-square)](https://unity.com/)
 [![AI Engine](https://img.shields.io/badge/Engineered%20With-Gemini%20Argon%20Release-purple?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
 [![Status](https://img.shields.io/badge/Vertical%20Slice-Chapter%20I%20Playable-success?style=flat-square)](#playable-vertical-slice)
+[![Deploy with Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fiamnih4l%2Flens-of-legends)
 [![License](https://img.shields.io/badge/License-MIT-amber?style=flat-square)](LICENSE)
 
 *“In North Malabar, a photograph is not a trophy. It is a witness to centuries of living ritual, devotion, and fire.”*
@@ -229,10 +230,15 @@ In **Chapter I: North Kerala — Theyyam in the Sacred Grove**, players experien
 
 ## 🚀 Quickstart & Developer Guide
 
-### Option 1: Run the Standalone Interactive Web Slice (Instant)
-Double-click `Lens_of_Legends_Interactive_Vertical_Slice.html` in your web browser. You can immediately walk through the Sacred Grove, raise your viewfinder, adjust shutter/aperture/ISO, snap photographs, and inspect the Personal Photo Journal.
+### Option 1: Deploy Live Demo on Vercel (Instant Zero-Config)
+The repository includes a production-ready `vercel.json`, `index.html`, and `.vercelignore` configured specifically for instant static hosting:
+* **One-Click Deploy**: Click the [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fiamnih4l%2Flens-of-legends) button or import `https://github.com/iamnih4l/lens-of-legends` in your [Vercel Dashboard](https://vercel.com/new).
+* **Automatic Build**: No build command needed (Framework preset: **Other**). Vercel deploys the interactive 3D web slice in under 3 seconds!
 
-### Option 2: Open and Run in Unity Engine
+### Option 2: Run the Standalone Interactive Web Slice Locally (No Installation)
+Double-click `index.html` (or `Lens_of_Legends_Interactive_Vertical_Slice.html`) in any modern web browser. You can immediately walk through the Sacred Grove, raise your viewfinder, adjust shutter/aperture/ISO, snap photographs, and inspect the Personal Photo Journal.
+
+### Option 3: Open and Run in Unity Engine
 1. **Requirements**: Unity 2022.3 LTS or Unity 6.
 2. **Add Project**: Open **Unity Hub** $\to$ click **Add** $\to$ **Add project from disk** $\to$ select this repository folder.
 3. **One-Click Setup**:

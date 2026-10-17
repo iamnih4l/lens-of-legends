@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lens of Legends — An Open-World Indian Cultural Photography Adventure</title>
+<style>
+  :root {
+    --bg-dark: #08070b;
+    --panel-bg: rgba(14, 12, 17, 0.93);
+    --border-amber: #eb7a2e;
+    --text-cream: #f8efe0;
+    --text-muted: #cbbba4;
+    --accent-gold: #f5b041;
+    --focus-green: #4cd964;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text-cream); }
+  #viewportCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  #viewportCanvas:active { cursor: grabbing; }
+  .overlay-screen { position: absolute; inset: 0; display: none; pointer-events: auto; }
+  .overlay-screen.active { display: flex; }
+  .panel-card {
+    background: var(--panel-bg);
+    border: 1.5px solid var(--border-amber);
+    border-radius: 8px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    backdrop-filter: blur(6px);
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 9px 15px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(38, 33, 44, 0.92); color: var(--text-cream);
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s ease;
+    text-align: center;
+  }
+  .btn:hover { background: rgba(68, 55, 76, 0.98); border-color: var(--accent-gold); }
+  .btn-accent {
+    background: linear-gradient(135deg, #d95f18, #b03a11);
+    border-color: #ff9d47; color: #fff8eb;
+  }
+  .btn-accent:hover { background: linear-gradient(135deg, #ee6e22, #c94517); }
+  h1 { font-size: 24px; letter-spacing: 0.04em; color: var(--text-cream); margin-bottom: 4px; }
+  h2 { font-size: 14px; color: var(--accent-gold); font-weight: 600; margin-bottom: 10px; }
+  p { font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+  #mainMenuScreen { align-items: center; justify-content: space-between; padding: 44px; background: rgba(6, 5, 10, 0.42); }
+  .menu-column { width: 470px; display: flex; flex-direction: column; gap: 9px; }
+  .stats-box { align-self: flex-end; width: 350px; }
+  #cinematicScreen { flex-direction: column; justify-content: space-between; pointer-events: auto; }
+  .letterbox-bar { width: 100%; height: 12vh; background: rgba(4, 4, 6, 0.96); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid rgba(235,122,46,0.3); }
+  .letterbox-bar.bottom { border-bottom: none; border-top: 1px solid rgba(235,122,46,0.3); }
+  #travelMapScreen { flex-direction: column; padding: 18px; gap: 12px; background: rgba(8, 10, 15, 0.94); }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; }
+  .map-grid { display: grid; grid-template-columns: 46% 54%; gap: 16px; flex: 1; min-height: 0; }
+  .india-map-box { position: relative; background: radial-gradient(circle at 45% 50%, #142234, #090d14); border: 1px solid rgba(120,160,210,0.3); border-radius: 6px; height: 240px; margin-bottom: 10px; overflow: hidden; }
+  .map-pin { position: absolute; transform: translate(-50%, -50%); padding: 4px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #fff; white-space: nowrap; }
+  .map-pin.playable { background: #e85d1a; color: #fff; box-shadow: 0 0 12px rgba(232,93,26,0.8); }
+  .map-pin.preview { background: rgba(45, 62, 84, 0.92); color: #d5e4f7; }
+  .map-pin.selected { outline: 2px solid var(--accent-gold); transform: translate(-50%, -50%) scale(1.08); }
+  .dest-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: calc(100% - 275px); }
+  .dest-detail { display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto; }
+  .swatch-row { display: grid; grid-template-columns: repeat(4, 1fr); height: 12px; border-radius: 4px; overflow: hidden; margin: 8px 0 14px 0; }
+  #explorationHud { pointer-events: none; flex-direction: column; justify-content: space-between; padding: 16px; }
+  .hud-interactive { pointer-events: auto; }
+  #cameraHud { pointer-events: none; flex-direction: column; justify-content: space-between; padding: 12px 3.5vw; }
+  .vf-frame { position: relative; flex: 1; border: 1.5px solid rgba(255,255,255,0.45); margin: 8px 0; }
+  .grid-line-v1, .grid-line-v2 { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.24); }
+  .grid-line-v1 { left: 33.33%; } .grid-line-v2 { left: 66.66%; }
+  .grid-line-h1, .grid-line-h2 { position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.24); }
+  .grid-line-h1 { top: 33.33%; } .grid-line-h2 { top: 66.66%; }
+  .focus-reticle { position: absolute; left: 50%; top: 50%; width: 98px; height: 70px; transform: translate(-50%, -50%); border: 2px solid var(--focus-green); border-radius: 4px; }
+  .modal-center { align-items: center; justify-content: center; background: rgba(5, 5, 8, 0.85); padding: 24px; }
+  .journal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; overflow-y: auto; max-height: 62vh; padding-right: 6px; }
+  .photo-card { background: rgba(24, 23, 30, 0.96); border: 1px solid rgba(235,122,46,0.4); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .photo-card img { width: 100%; height: 145px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); }
+  #toastBanner { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(18, 14, 12, 0.96); border: 1.5px solid var(--accent-gold); color: #ffe8b8; padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; z-index: 999; display: none; }
+  #shutterFlash { position: fixed; inset: 0; background: #fff9ec; opacity: 0; pointer-events: none; z-index: 900; transition: opacity 0.18s ease-out; }
+</style>
+</head>
+<body>
+
+<canvas id="viewportCanvas"></canvas>
+<div id="shutterFlash"></div>
+<div id="toastBanner"></div>
+
+<!-- 1. MAIN MENU -->
+<div id="mainMenuScreen" class="overlay-screen active">
+  <div class="panel-card menu-column">
+    <h1>LENS OF LEGENDS</h1>
+    <h2>An Open-World Indian Cultural Photography Adventure</h2>
+    <p style="margin-bottom:8px;">
+      Enhanced High-Detail 3D Vertical Slice: Experience authentic North Malabar <strong>Mukhathezhuthu</strong> facial art,
+      concentric <strong>Thiru Mudi</strong> bamboo-and-silk headdress with silver <em>Chuttikuzhal</em> ornaments, pleated <strong>Uduthukettu</strong> attire,
+      <strong>Chuttuvilakku</strong> shrine lamp walls, 7-wick <strong>Nilavilakku</strong> bronze lamps, curved coconut palms, and rising <strong>Meleri</strong> embers.
+    </p>
+    <button class="btn btn-accent" onclick="GameApp.startNewJourney()">New Journey (Intro Cinematic &rarr; India Travel Map)</button>
+    <button class="btn" onclick="GameApp.enterPlayableKeralaDirectly()">Continue / Enter Chapter I Directly (North Kerala — Theyyam)</button>
+    <button class="btn" onclick="GameApp.openTravelMap()">India Travel Map (6 Regional Chapters)</button>
+    <button class="btn" onclick="GameApp.openJournal()">Personal Photo Journal (<span id="menuPhotoCount">0</span> Captures)</button>
+    <button class="btn" onclick="GameApp.openCommunity()">Community Photography Feed [Offline Demo]</button>
+  </div>
+  <div class="panel-card stats-box">
+    <h2>FIELD PHOTOGRAPHER RECORD</h2>
+    <p id="menuStatsText">Photographer XP: 0 | Saved Photos: 0<br>Cultural POIs Discovered: 0 / 5<br>Unlocked Cameras: 3 / 4</p>
+    <p style="margin-top:8px; font-size:11px; color:#a99b88;">
+      Unity C# Project Upgraded: ProceduralPbrArtGenerator.cs (512x512 PBR Normal &amp; Albedo maps + Custom 3D Lathe/Arch/Pleat Meshes)
+    </p>
+  </div>
+</div>
+
+<!-- 2. CINEMATIC LETTERBOX -->
+<div id="cinematicScreen" class="overlay-screen">
+  <div class="letterbox-bar">
+    <div><h2 id="cinTitle" style="margin:0;">LENS OF LEGENDS — AN INDIA-WIDE PHOTOGRAPHY JOURNEY</h2></div>
+    <button class="btn" onclick="GameApp.skipCinematic()">Skip Sequence [Space]</button>
+  </div>
+  <div class="letterbox-bar bottom">
+    <p id="cinSubtitle" style="color:#f4e9d8; font-size:14px;">Every region holds living traditions, architecture, music, and stories waiting to be documented with care.</p>
+  </div>
+</div>
+
+<!-- 3. INDIA TRAVEL MAP -->
+<div id="travelMapScreen" class="overlay-screen">
+  <div class="panel-card topbar">
+    <div><h1 style="font-size:20px;">INDIA TRAVEL MAP — CULTURAL PHOTOGRAPHY CHAPTERS</h1></div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn" onclick="GameApp.openJournal()">Photo Journal</button>
+      <button class="btn" onclick="GameApp.openCommunity()">Community [Demo]</button>
+      <button class="btn" onclick="GameApp.showScreen('mainMenuScreen')">Main Menu</button>
+    </div>
+  </div>
+  <div class="map-grid">
+    <div class="panel-card" style="display:flex; flex-direction:column;">
+      <h2>SELECT A REGIONAL CHAPTER ACROSS INDIA</h2>
+      <div class="india-map-box" id="indiaMapPins"></div>
+      <div class="dest-list" id="destListButtons"></div>
+    </div>
+    <div class="panel-card dest-detail" id="destDetailCard"></div>
+  </div>
+</div>
+
+<!-- 4. REGIONAL INTRODUCTION MODAL -->
+<div id="regionalIntroScreen" class="overlay-screen modal-center">
+  <div class="panel-card" style="max-width:740px; width:100%; display:flex; flex-direction:column; gap:12px;">
+    <h1>North Kerala — Theyyam in the Sacred Grove</h1>
+    <h2>Chapter I: Firelight of the Kavu (Playable Vertical Slice)</h2>
+    <div style="background:rgba(255,255,255,0.04); padding:12px; border-radius:6px; border-left:3px solid var(--focus-green);">
+      <p style="color:#e9f7ec;"><strong>1. VERIFIED CULTURAL TRADITION (Authentic Historical &amp; Cultural Context)</strong><br>
+      Theyyam (also known as Kaliyattam) is a centuries-old living ritual worship tradition practiced across sacred groves (Kavus) and village shrines in North Malabar, Kerala (primarily Kannur and Kasaragod districts) between December and May. Following the vocal Thottam invocation and intricate Mukhathezhuthu facial painting, the performer is revered as a living manifestation of the deity or ancestral hero. (<a href="https://en.wikipedia.org/wiki/Theyyam" target="_blank" style="color:var(--accent-gold);">Source: Wikipedia — Theyyam</a>)</p>
+    </div>
+    <div style="background:rgba(255,255,255,0.04); padding:12px; border-radius:6px; border-left:3px solid var(--accent-gold);">
+      <p><strong>2. STORYTELLER INTRODUCTION (Fictional Narrative Layer)</strong><br>
+      You arrive at dusk in a humid village courtyard in North Malabar. Local mentor and archivist Madhavan Nair welcomes you beside the laterite wall of an ancestral Kavu. Bronze oil lamps (Nilavilakku), a 36-lamp Chuttuvilakku shrine frame, and a ceremonial bonfire (Meleri) illuminate the red earth as the rhythmic pulse of the Chenda drum echoes through coconut and areca palms.</p>
+    </div>
+    <p>
+      <strong>Controls:</strong> Move with <strong>WASD</strong> or <strong>Arrow Keys</strong> &bull; Aim with <strong>Mouse Drag</strong> (or Q/E yaw) &bull;
+      Toggle Camera Viewfinder with <strong>[V]</strong> or button &bull; Capture Photo with <strong>[Space]</strong> or Shutter button &bull; Inspect POI with <strong>[E]</strong>.
+    </p>
+    <div style="display:flex; gap:12px; margin-top:6px;">
+      <button class="btn btn-accent" style="flex:1;" onclick="GameApp.startRegionalArrivalSweep()">Begin with Arrival Camera Sweep &rarr; Explore</button>
+      <button class="btn" style="flex:1;" onclick="GameApp.startFreeExploration()">Skip Sweep &rarr; Explore Immediately</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. EXPLORATION HUD -->
+<div id="explorationHud" class="overlay-screen">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+    <div class="panel-card hud-interactive" style="padding:12px 16px; max-width:480px;">
+      <h2 style="margin-bottom:4px;">NORTH KERALA — THEYYAM IN THE SACRED GROVE</h2>
+      <p style="font-size:12px; margin-bottom:8px;">WASD: Walk Around Kavu &bull; Drag Mouse: Look Around &bull; Walk up close to inspect costume &amp; shrine details</p>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn btn-accent" onclick="GameApp.toggleCameraMode(true)">Enter Camera Mode [V]</button>
+        <button class="btn" onclick="GameApp.inspectNearestPoi()">Inspect POI [E]</button>
+        <button class="btn" onclick="GameApp.openJournal()">Journal [J]</button>
+        <button class="btn" onclick="GameApp.openCommunity()">Community [K]</button>
+        <button class="btn" onclick="GameApp.openTravelMap()">Travel Map [M]</button>
+      </div>
+    </div>
+    <div class="panel-card" style="padding:12px 16px; width:340px;">
+      <h2 style="margin-bottom:4px; font-size:13px;">OPTIONAL PHOTOGRAPHY INSPIRATIONS</h2>
+      <div id="hudAssignmentsList" style="font-size:12px; color:var(--text-muted); line-height:1.45;"></div>
+    </div>
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+    <div id="poiPopupCard" class="panel-card" style="max-width:520px; display:none;"></div>
+    <div id="poiProximityPrompt" class="panel-card" style="padding:8px 14px; font-size:12px; color:var(--accent-gold);"></div>
+  </div>
+</div>
+
+<!-- 6. DEDICATED PHOTOGRAPHY VIEWFINDER HUD -->
+<div id="cameraHud" class="overlay-screen">
+  <div class="panel-card hud-interactive" style="padding:8px 16px; display:flex; justify-content:space-between; align-items:center;">
+    <div id="vfTopTelemetry" style="font-size:13px; font-weight:700; color:#ffe7c2;"></div>
+    <div style="display:flex; gap:6px;">
+      <button class="btn" onclick="GameApp.cycleCameraProfile()">Switch Camera Body [1-4]</button>
+      <button class="btn" onclick="GameApp.cycleColorProfile()">Color Profile [C]</button>
+      <button class="btn" onclick="GameApp.toggleGrid()">Rule-of-Thirds Grid [G]</button>
+      <button class="btn" onclick="GameApp.toggleCameraMode(false)">Exit Viewfinder [V]</button>
+    </div>
+  </div>
+
+  <div class="vf-frame" id="vfFrameBox">
+    <div class="grid-line-v1" id="gridV1"></div>
+    <div class="grid-line-v2" id="gridV2"></div>
+    <div class="grid-line-h1" id="gridH1"></div>
+    <div class="grid-line-h2" id="gridH2"></div>
+    <div class="focus-reticle" id="focusReticle"></div>
+    <div id="focusStatusLabel" style="position:absolute; left:50%; top:calc(50% + 44px); transform:translateX(-50%); background:rgba(0,0,0,0.75); padding:3px 10px; border-radius:4px; font-size:12px; font-weight:700;"></div>
+  </div>
+
+  <div class="panel-card hud-interactive" style="padding:10px 16px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px;">
+    <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:12px;">
+      <label>Focal Zoom: <input type="range" id="sliderFocal" min="18" max="160" value="45" oninput="GameApp.updateCameraSliders()"> <span id="lblFocal">45mm</span></label>
+      <label>Aperture (Sim DoF): <input type="range" id="sliderAperture" min="1.4" max="16" step="0.2" value="2.0" oninput="GameApp.updateCameraSliders()"> <span id="lblAperture">f/2.0</span></label>
+      <label>Focus Dist: <input type="range" id="sliderFocusDist" min="1.5" max="28" step="0.5" value="8.5" oninput="GameApp.updateCameraSliders()"> <span id="lblFocusDist">8.5m</span></label>
+      <label>Exposure EV: <input type="range" id="sliderEv" min="-2.0" max="2.0" step="0.2" value="0.0" oninput="GameApp.updateCameraSliders()"> <span id="lblEv">+0.0 EV</span></label>
+      <label>ISO: <select id="selIso" onchange="GameApp.updateCameraSliders()" style="background:#1c1922; color:#fff; border:1px solid #555; padding:2px 4px;">
+        <option value="100">100</option><option value="400">400</option><option value="800" selected>800</option><option value="1600">1600</option><option value="3200">3200</option><option value="6400">6400</option>
+      </select></label>
+      <label>Shutter: <select id="selShutter" onchange="GameApp.updateCameraSliders()" style="background:#1c1922; color:#fff; border:1px solid #555; padding:2px 4px;">
+        <option value="30">1/30s (Ember Trails)</option><option value="60">1/60s</option><option value="125" selected>1/125s</option><option value="250">1/250s</option><option value="500">1/500s (Freeze Action)</option>
+      </select></label>
+    </div>
+    <button class="btn btn-accent" style="padding:10px 22px; font-size:14px;" onclick="GameApp.capturePhoto()">&#128247; CAPTURE PHOTO [Space]</button>
+  </div>
+</div>
+
+<!-- 7. PHOTO PREVIEW MODAL -->
+<div id="photoPreviewScreen" class="overlay-screen modal-center">
+  <div class="panel-card" style="max-width:780px; width:100%; display:flex; flex-direction:column; gap:12px;">
+    <h1>PHOTOGRAPH CAPTURED &amp; SAVED TO PERSONAL JOURNAL</h1>
+    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:16px;">
+      <img id="previewImg" style="width:100%; border-radius:6px; border:2px solid #fff;" />
+      <div id="previewMetaText" style="font-size:13px; line-height:1.55; color:var(--text-muted);"></div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:4px;">
+      <button class="btn btn-accent" onclick="GameApp.closePreviewToExploration()">Continue Exploring [Esc]</button>
+      <button class="btn" onclick="GameApp.openJournal()">Open in Photo Journal</button>
+      <button class="btn" onclick="GameApp.publishLastCaptureToCommunity()">Share to Local Community Demo</button>
+    </div>
+  </div>
+</div>
+
+<!-- 8. PERSONAL PHOTO JOURNAL -->
+<div id="journalScreen" class="overlay-screen modal-center">
+  <div class="panel-card" style="max-width:960px; width:100%; height:85vh; display:flex; flex-direction:column; gap:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h1>PERSONAL PHOTOGRAPHER'S TRAVEL JOURNAL</h1>
+        <p style="font-size:12px;">Persistent Local Storage &bull; Only genuine player-captured photographs appear in your gallery.</p>
+      </div>
+      <button class="btn" onclick="GameApp.closeModal()">Close [Esc]</button>
+    </div>
+    <div class="journal-grid" id="journalGridContainer"></div>
+  </div>
+</div>
+
+<!-- 9. OFFLINE COMMUNITY DEMO -->
+<div id="communityScreen" class="overlay-screen modal-center">
+  <div class="panel-card" style="max-width:960px; width:100%; height:85vh; display:flex; flex-direction:column; gap:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h1>IN-GAME PHOTOGRAPHY COMMUNITY</h1>
+      <button class="btn" onclick="GameApp.closeModal()">Close [Esc]</button>
+    </div>
+    <div style="background:#3d220d; border:1.5px solid var(--accent-gold); padding:8px 14px; border-radius:6px; color:#ffdf9e; font-size:12px; font-weight:700; text-align:center;">
+      OFFLINE DEMONSTRATION FEED — Simulated Local Community Preview (No live online server connected; separated via ICommunityDataSource)
+    </div>
+    <div id="communityFeedContainer" style="display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1;"></div>
+  </div>
+</div>
+
+<script>
+const DESTINATIONS = [
+  {
+    id: "kerala_theyyam",
+    title: "North Kerala — Theyyam in the Sacred Grove",
+    state: "Kerala (Kannur & Kasaragod)",
+    subtitle: "Chapter I: Firelight of the Kavu (Playable Vertical Slice)",
+    playable: true,
+    mapPos: [32, 82],
+    palette: ["#080d1c", "#471a0e", "#ff8f38", "#38241e"],
+    theme: "Living ritual traditions, sacred groves (Kavu), firelight, Chenda percussion, laterite shrine architecture, and nighttime atmosphere.",
+    verified: "Theyyam (Kaliyattam) is a centuries-old living ritual tradition practiced across sacred groves (Kavus) in North Malabar, Kerala between December and May. Following the vocal Thottam invocation and Mukhathezhuthu facial painting, the performer is revered as a living manifestation of the deity or ancestral hero.",
+    refUrl: "https://en.wikipedia.org/wiki/Theyyam",
+    narrative: "You arrive at dusk in a humid village courtyard in North Malabar. Local mentor Madhavan Nair welcomes you beside the laterite wall of an ancestral Kavu as bronze oil lamps and a ceremonial Meleri fire illuminate the red earth.",
+    subjects: ["Theyyam Performer — Towered Thiru Mudi Headdress & Mukhathezhuthu", "Meleri Ceremonial Bonfire & Rising Embers", "Nilavilakku 7-Wick Bronze Oil Lamps", "Kavu Laterite Stone Shrine & 36-Lamp Chuttuvilakku", "Sacred Banyan Tree & Chenda Melam Ensemble"]
+  },
+  {
+    id: "varanasi_ghats",
+    title: "Varanasi — The Sacred Riverfront",
+    state: "Uttar Pradesh",
+    subtitle: "Chapter II: Mist & Lamps on the Ganges (Preview / Future Destination)",
+    playable: false,
+    mapPos: [58, 38],
+    palette: ["#3d577a", "#e0a36b", "#ffc785", "#8c7a73"],
+    theme: "Stepped riverfront ghats, wooden rowboats, morning mist over the Ganges, architectural reflections, and evening Ganga Aarti ceremonies.",
+    verified: "Varanasi features 84 riverfront ghats leading to the Ganges. Assi Ghat hosts sunrise Vedic recitals and classical music (Subah-e-Banaras), while Dashashwamedh Ghat hosts the evening Ganga Aarti lamp ceremony.",
+    refUrl: "https://en.wikipedia.org/wiki/Ghats_in_Varanasi",
+    narrative: "[Preview Chapter Concept] At dawn along Assi Ghat and Dashashwamedh Ghat, winter mist hangs over the water as wooden boats glide past sandstone steps.",
+    subjects: ["Stepped Sandstone Ghats & Heritage Pavilions", "Wooden Rowboats in Golden Morning Mist", "Architectural Reflections on the Ganges", "Evening Brass Lamp Ceremonies"]
+  },
+  {
+    id: "rajasthan_desert",
+    title: "Rajasthan — The Desert Festival (Maru Mahotsav)",
+    state: "Rajasthan (Jaisalmer & Sam Sand Dunes)",
+    subtitle: "Chapter III: Golden Sandstone & Songs of the Thar (Preview / Future Destination)",
+    playable: false,
+    mapPos: [22, 34],
+    palette: ["#2e5cad", "#f59438", "#ffb859", "#ad7547"],
+    theme: "Wind-sculpted Thar Desert dunes, golden Jaisalmer sandstone architecture, vibrant textiles, Kalbelia dance, and Manganiyar folk music at sunset.",
+    verified: "The Jaisalmer Desert Festival (Maru Mahotsav) celebrates western Rajasthan's desert heritage with Manganiyar and Langa folk musicians and UNESCO-recognized Kalbelia folk dance.",
+    refUrl: "https://jaisalmerdesertfestival.rajasthan.gov.in/",
+    narrative: "[Preview Chapter Concept] Late-afternoon sunlight turns carved yellow sandstone havelis and sweeping Thar dunes into liquid gold.",
+    subjects: ["Wind-Rippled Sam Sand Dunes at Sunset", "Carved Jharokha Balconies of Jaisalmer", "Kalbelia Dancers & Mirror-Work Textiles", "Manganiyar Folk Musicians & Kamaicha"]
+  },
+  {
+    id: "kolkata_durgapuja",
+    title: "Kolkata — Durga Puja Public Art & Illumination",
+    state: "West Bengal",
+    subtitle: "Chapter IV: City of Clay, Light & Pandals (Preview / Future Destination)",
+    playable: false,
+    mapPos: [72, 48],
+    palette: ["#140f2e", "#732952", "#ff7a9e", "#613857"],
+    theme: "Densely layered urban streets, Kumartuli clay sculpture workshops, elaborate bamboo-and-cloth pandal art installations, and festival illuminations.",
+    verified: "Inscribed on UNESCO's Representative List of Intangible Cultural Heritage of Humanity in 2021, Durga Puja in Kolkata transforms the city with community pandal art installations, Kumartuli clay sculpting, and Dhak drumming.",
+    refUrl: "https://ich.unesco.org/en/RL/durga-puja-in-kolkata-00703",
+    narrative: "[Preview Chapter Concept] Narrow north-city lanes open onto towering contemporary and traditional pandals glowing with Chandannagar light art.",
+    subjects: ["Thematic Pandal Art Installations", "Kumartuli Clay Sculpting Workshops", "Illuminated Heritage Streetscapes", "Dhak Drummers & Street Celebrations"]
+  },
+  {
+    id: "nagaland_hornbill",
+    title: "Nagaland — Hornbill Festival at Kisama",
+    state: "Nagaland (Kisama Heritage Village, Kohima)",
+    subtitle: "Chapter V: Morungs of the Hills (Preview / Future Destination)",
+    playable: false,
+    mapPos: [86, 36],
+    palette: ["#296157", "#9ebfad", "#f2e0bd", "#6b8575"],
+    theme: "Misty Naga Hills, distinct tribe-specific Morung architecture, handwoven shawls, carved wooden log drums, bamboo craft displays, and choral folk performances.",
+    verified: "Held December 1–10 at Kisama Heritage Village near Kohima, the Hornbill Festival showcases the distinct Morung architecture, woven textiles, and traditions of Nagaland's 17 recognized Naga tribes and the Kachari community.",
+    refUrl: "https://tourism.nagaland.gov.in/naga-heritage-village/",
+    narrative: "[Preview Chapter Concept] Set against the forested slopes near Kohima, each Morung preserves distinct community woodcarvings, oral histories, and woven motifs.",
+    subjects: ["Tribe-Specific Morung Architecture & Carvings", "Carved Wooden Log Drums & Bamboo Crafts", "Handwoven Naga Shawls & Beadwork", "Misty Ridges of the Japfu Range"]
+  },
+  {
+    id: "ladakh_hemis",
+    title: "Ladakh — High Himalayas & Monastic Festivals",
+    state: "Ladakh (Indus Valley & Hemis)",
+    subtitle: "Chapter VI: Citadels Above the Clouds (Preview / Future Destination)",
+    playable: false,
+    mapPos: [38, 12],
+    palette: ["#1442a3", "#94c2f0", "#fff5e6", "#8599b8"],
+    theme: "High-altitude Trans-Himalayan mountains, whitewashed hilltop gompas, prayer flags, crisp cobalt skies, and sacred Cham masked dances.",
+    verified: "The Hemis Tsechu festival at Hemis Monastery (Drukpa lineage) honors Guru Padmasambhava with sacred Cham masked dances accompanied by Dungchen long copper horns, cymbals, and drums.",
+    refUrl: "https://ignca.gov.in/the-hemis-festival/",
+    narrative: "[Preview Chapter Concept] At over 3,500 meters in the Himalayan rain shadow, crystal-clear mountain light carves sharp shadows across whitewashed monastic courtyards.",
+    subjects: ["Whitewashed Gompa Architecture on Mountain Cliffs", "Sacred Cham Masked Dance Courtyards", "Wide-Angle Trans-Himalayan Valleys", "Dungchen Long Horns & Silk Brocades"]
+  }
+];
+
+const CAMERA_PROFILES = [
+  { id: "cam_basic", name: "Yatra Compact DX-35", minF: 28, maxF: 70, defF: 35, dofMult: 0.75, vig: 0.14, grain: 0.01, border: false },
+  { id: "cam_pro", name: "Drishti Pro M-IV Full-Frame", minF: 18, maxF: 160, defF: 50, dofMult: 1.35, vig: 0.08, grain: 0.005, border: false },
+  { id: "cam_vintage", name: "Chhaya-76 Rangefinder (Film)", minF: 35, maxF: 85, defF: 45, dofMult: 1.05, vig: 0.34, grain: 0.07, border: true },
+  { id: "cam_heritage", name: "Kala-Rasa 6x6 Medium Format", minF: 24, maxF: 120, defF: 65, dofMult: 1.65, vig: 0.22, grain: 0.025, border: true }
+];
+
+const COLOR_PROFILES = [
+  { name: "Natural Night (4200K)", r: 1.0, g: 1.0, b: 1.0, bw: false },
+  { name: "Firelight Warm (3200K)", r: 1.15, g: 0.96, b: 0.80, bw: false },
+  { name: "Monsoon Cool (6500K)", r: 0.85, g: 0.97, b: 1.16, bw: false },
+  { name: "Heritage Slide Film", r: 1.08, g: 0.98, b: 0.88, bw: false },
+  { name: "Silver Gelatin B&W", r: 1.0, g: 1.0, b: 1.0, bw: true }
+];
+
+const POIS = [
+  { id: "poi_theyyam_performer", title: "The Living Deity: Theyyam Performance", x: 0, z: 4.2, verified: "Verified Cultural Fact: Practiced in North Malabar's Kannur and Kasaragod districts, Theyyam encompasses over 400 forms featuring towering Thiru Mudi headgear, Mukhathezhuthu facial art, and pleated Uduthukettu attire.", story: "Storyteller Madhavan (Narrative): 'Zoom in to 85mm–135mm to frame the Prakkezhuthu black eye arches, white Chutti rice-paste dots, and silver Chuttikuzhal discs on the Mudi.'" },
+  { id: "poi_kavu_shrine", title: "Kavu: The Sacred Grove & Laterite Shrine", x: 0, z: 14.5, verified: "Verified Cultural Fact: A Kavu is a traditional sacred grove on the Malabar Coast that preserves local biodiversity alongside shrines built from porous red laterite stone, rosewood pillars, and Chuttuvilakku oil lamps.", story: "Storyteller Madhavan (Narrative): 'Notice the 36 Chuttuvilakku lamps glowing along the wooden lattice screen of the Sreekovil.'" },
+  { id: "poi_nilavilakku_lamps", title: "Nilavilakku & Meleri: Sacred Firelight", x: -4.2, z: 5.0, verified: "Verified Cultural Fact: Cast-bronze 7-wick standing oil lamps (Nilavilakku) and the ceremonial Meleri bonfire illuminate nighttime Kavu performances.", story: "Storyteller Madhavan (Narrative): 'Dial Exposure Compensation slightly negative (-0.4 EV) so the bronze flames and rising embers glow richly.'" },
+  { id: "poi_chenda_ensemble", title: "Chenda Melam & Thottam Invocation", x: 6.2, z: 5.8, verified: "Verified Cultural Fact: A Theyyam ritual begins with the Thottam invocation song accompanied by cylindrical wooden Chenda drums and bronze Elathalam cymbals.", story: "Storyteller Madhavan (Narrative): 'Every crescendo of the Chenda drums signals a Kalasham spin in the courtyard.'" },
+  { id: "poi_sacred_banyan", title: "Ancient Banyan & Areca Palm Canopy", x: -8.5, z: 10.5, verified: "Verified Cultural Fact: Sacred groves in North Kerala shelter ancient Ficus (banyan/peepal) trees and nocturnal wildlife as community-protected ecosystems.", story: "Storyteller Madhavan (Narrative): 'Frame the performer through the hanging banyan prop roots for natural foreground depth.'" }
+];
+
+const EMBER_PARTICLES = Array.from({ length: 85 }, (_, i) => ({
+  angle: (i / 85) * Math.PI * 2,
+  radius: 0.15 + (i % 7) * 0.14,
+  y: (i / 85) * 4.5,
+  speed: 0.75 + (i % 5) * 0.25,
+  size: 0.025 + (i % 4) * 0.012,
+  drift: (i % 2 === 0 ? 1 : -1) * (0.3 + (i % 3) * 0.15)
+}));
+
+const PALM_TREES = Array.from({ length: 24 }, (_, i) => {
+  const ang = (i / 24) * Math.PI * 2;
+  const rad = 14.2 + (i % 4) * 1.4;
+  return {
+    x: Math.cos(ang) * rad,
+    z: 4.0 + Math.sin(ang) * rad,
+    height: 7.4 + (i % 5) * 0.65,
+    leanX: Math.cos(ang + 0.5) * (0.65 + (i % 3) * 0.25),
+    leanZ: Math.sin(ang + 0.5) * (0.65 + (i % 3) * 0.25),
+    phase: i * 0.7
+  };
+}).filter(p => !(p.z < -10.5 && Math.abs(p.x) < 4.5));
+
+const GameApp = {
+  state: "mainMenuScreen",
+  returnState: "mainMenuScreen",
+  selectedDestIdx: 0,
+  inCameraMode: false,
+  camProfileIdx: 1, // Default to Pro Mirrorless so zoom up to 160mm is immediately available
+  colorProfileIdx: 0,
+  showGrid: true,
+  player: { x: 0, y: 1.72, z: -7.5, yaw: 0, pitch: 0.03 },
+  keys: {},
+  dragging: false,
+  lastMouse: [0, 0],
+  time: 0,
+  saveData: {
+    xp: 0,
+    photos: [],
+    discoveredPois: [],
+    completedAssignments: [],
+    communityPosts: [
+      { id: "demo1", author: "[DEMO SAMPLE] @Ananya_MalabarLens", region: "North Kerala — Theyyam", caption: "[Offline Demo Entry] Framed the towering Thiru Mudi headdress and Mukhathezhuthu facial art at 85mm f/2.0 as the Meleri embers rose.", gear: "Drishti Pro M-IV • 85mm • f/2.0 • ISO 1600", likes: 42, liked: false, img: null },
+      { id: "demo2", author: "[DEMO SAMPLE] @Kabir_GhatChronicles", region: "Varanasi — Sacred Riverfront (Preview)", caption: "[Offline Demo Entry] Looking forward to the Varanasi chapter—wooden rowboats in winter mist at Assi Ghat.", gear: "Chhaya-76 Rangefinder • 35mm • f/4.0 • ISO 400", likes: 29, liked: false, img: null }
+    ]
+  },
+
+  init() {
+    try {
+      const saved = localStorage.getItem("LensOfLegends_BrowserSave_v2");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.photos)) this.saveData = parsed;
+      }
+    } catch (e) {}
+    this.canvas = document.getElementById("viewportCanvas");
+    this.ctx = this.canvas.getContext("2d");
+    window.addEventListener("resize", () => this.resize());
+    this.resize();
+    this.bindEvents();
+    this.updateMenuStats();
+    this.renderTravelMapUI();
+    requestAnimationFrame((ts) => this.loop(ts));
+  },
+
+  saveLocal() {
+    try { localStorage.setItem("LensOfLegends_BrowserSave_v2", JSON.stringify(this.saveData)); } catch (e) {}
+    this.updateMenuStats();
+  },
+
+  resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  },
+
+  bindEvents() {
+    window.addEventListener("keydown", (e) => {
+      this.keys[e.code] = true;
+      if (e.code === "KeyV" && (this.state === "explorationHud" || this.state === "cameraHud")) {
+        this.toggleCameraMode(!this.inCameraMode);
+      } else if (e.code === "Space") {
+        if (this.state === "cinematicScreen") this.skipCinematic();
+        else if (this.state === "cameraHud") this.capturePhoto();
+      } else if (e.code === "KeyE" && this.state === "explorationHud") {
+        this.inspectNearestPoi();
+      } else if (e.code === "KeyJ" && (this.state === "explorationHud" || this.state === "cameraHud")) {
+        this.openJournal();
+      } else if (e.code === "KeyM" && (this.state === "explorationHud" || this.state === "cameraHud")) {
+        this.openTravelMap();
+      } else if (e.code === "KeyK" && (this.state === "explorationHud" || this.state === "cameraHud")) {
+        this.openCommunity();
+      } else if (e.code === "KeyG" && this.state === "cameraHud") {
+        this.toggleGrid();
+      } else if (e.code === "KeyC" && this.state === "cameraHud") {
+        this.cycleColorProfile();
+      } else if (e.code === "Escape") {
+        if (this.state === "cameraHud") this.toggleCameraMode(false);
+        else if (["journalScreen", "communityScreen", "photoPreviewScreen"].includes(this.state)) this.closeModal();
+      }
+    });
+    window.addEventListener("keyup", (e) => { this.keys[e.code] = false; });
+    this.canvas.addEventListener("mousedown", (e) => {
+      this.dragging = true;
+      this.lastMouse = [e.clientX, e.clientY];
+    });
+    window.addEventListener("mouseup", () => { this.dragging = false; });
+    window.addEventListener("mousemove", (e) => {
+      if (!this.dragging) return;
+      if (this.state !== "explorationHud" && this.state !== "cameraHud") return;
+      const dx = e.clientX - this.lastMouse[0];
+      const dy = e.clientY - this.lastMouse[1];
+      this.lastMouse = [e.clientX, e.clientY];
+      this.player.yaw += dx * 0.0052;
+      this.player.pitch = Math.max(-0.55, Math.min(0.55, this.player.pitch - dy * 0.0042));
+    });
+    this.canvas.addEventListener("wheel", (e) => {
+      if (this.state !== "cameraHud") return;
+      const sliderF = document.getElementById("sliderFocal");
+      sliderF.value = Math.max( parseFloat(sliderF.min), Math.min(parseFloat(sliderF.max), parseFloat(sliderF.value) - Math.sign(e.deltaY) * 6));
+      this.updateCameraSliders();
+    });
+  },
+
+  showToast(msg) {
+    const el = document.getElementById("toastBanner");
+    el.textContent = msg;
+    el.style.display = "block";
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => { el.style.display = "none"; }, 4200);
+  },
+
+  showScreen(id) {
+    document.querySelectorAll(".overlay-screen").forEach(s => s.classList.remove("active"));
+    const target = document.getElementById(id);
+    if (target) target.classList.add("active");
+    this.state = id;
+    this.updateAssignmentsHUD();
+  },
+
+  startNewJourney() {
+    this.cinematicMode = "intro";
+    this.cinematicStart = performance.now();
+    document.getElementById("cinTitle").textContent = "LENS OF LEGENDS — AN INDIA-WIDE PHOTOGRAPHY JOURNEY";
+    document.getElementById("cinSubtitle").textContent = "From North Kerala's sacred groves to Varanasi, Rajasthan, Kolkata, Nagaland, and Ladakh—document India's living heritage.";
+    this.showScreen("cinematicScreen");
+  },
+
+  startRegionalArrivalSweep() {
+    this.cinematicMode = "arrival";
+    this.cinematicStart = performance.now();
+    document.getElementById("cinTitle").textContent = "CHAPTER I: NORTH KERALA — THEYYAM IN THE SACRED GROVE";
+    document.getElementById("cinSubtitle").textContent = "Kannur & Kasaragod Region • Nighttime Kavu Courtyard • Transitioning seamlessly to player control...";
+    this.showScreen("cinematicScreen");
+  },
+
+  skipCinematic() {
+    if (this.cinematicMode === "intro") this.openTravelMap();
+    else this.startFreeExploration();
+  },
+
+  enterPlayableKeralaDirectly() {
+    this.selectedDestIdx = 0;
+    this.showScreen("regionalIntroScreen");
+  },
+
+  startFreeExploration() {
+    this.inCameraMode = false;
+    this.player.x = 0; this.player.z = -5.8; this.player.yaw = 0; this.player.pitch = 0.04;
+    this.showScreen("explorationHud");
+  },
+
+  openTravelMap() {
+    this.inCameraMode = false;
+    this.renderTravelMapUI();
+    this.showScreen("travelMapScreen");
+  },
+
+  renderTravelMapUI() {
+    const pinsBox = document.getElementById("indiaMapPins");
+    const listBox = document.getElementById("destListButtons");
+    pinsBox.innerHTML = "";
+    listBox.innerHTML = "";
+
+    DESTINATIONS.forEach((d, idx) => {
+      const pin = document.createElement("div");
+      pin.className = "map-pin " + (d.playable ? "playable " : "preview ") + (idx === this.selectedDestIdx ? "selected" : "");
+      pin.style.left = d.mapPos[0] + "%";
+      pin.style.top = d.mapPos[1] + "%";
+      pin.textContent = (idx + 1) + ". " + d.title.split("—")[0].trim() + (d.playable ? " ★" : "");
+      pin.onclick = () => { this.selectedDestIdx = idx; this.renderTravelMapUI(); };
+      pinsBox.appendChild(pin);
+
+      const btn = document.createElement("button");
+      btn.className = "btn " + (idx === this.selectedDestIdx ? "btn-accent" : "");
+      btn.style.justifyContent = "space-between";
+      btn.innerHTML = `<span>${idx + 1}. ${d.title}</span><span style="font-size:11px; opacity:0.85;">${d.playable ? "[PLAYABLE]" : "[PREVIEW]"}</span>`;
+      btn.onclick = () => { this.selectedDestIdx = idx; this.renderTravelMapUI(); };
+      listBox.appendChild(btn);
+    });
+
+    const sel = DESTINATIONS[this.selectedDestIdx];
+    const detailCard = document.getElementById("destDetailCard");
+    detailCard.innerHTML = `
+      <div>
+        <h1>${sel.title}</h1>
+        <h2>${sel.subtitle} &bull; ${sel.state}</h2>
+        <div class="swatch-row">
+          <div style="background:${sel.palette[0]}"></div>
+          <div style="background:${sel.palette[1]}"></div>
+          <div style="background:${sel.palette[2]}"></div>
+          <div style="background:${sel.palette[3]}"></div>
+        </div>
+        <p style="margin-bottom:10px;"><strong>Visual &amp; Cultural Theme:</strong><br>${sel.theme}</p>
+        <p style="margin-bottom:10px;"><strong>Verified Cultural Background:</strong><br>${sel.verified} <a href="${sel.refUrl}" target="_blank" style="color:var(--accent-gold);">[Verified Reference]</a></p>
+        <p style="margin-bottom:10px;"><strong>Narrative Journey Context:</strong><br>${sel.narrative}</p>
+        <p><strong>Key Photography Subjects:</strong><br>&bull; ${sel.subjects.join("<br>&bull; ")}</p>
+      </div>
+      <div style="margin-top:14px;">
+        ${sel.playable
+          ? `<button class="btn btn-accent" style="width:100%; padding:12px;" onclick="GameApp.enterPlayableKeralaDirectly()">TRAVEL TO ${sel.title.toUpperCase()} (ENTER PLAYABLE REGION)</button>`
+          : `<button class="btn" style="width:100%; padding:12px;" onclick="GameApp.showToast('Preview Destination: ${sel.title} is structured in the India-wide catalog as a future chapter. Select Chapter I (North Kerala — Theyyam) to play the vertical slice.')">PREVIEW CHAPTER ONLY — Future Destination in India-Wide Roadmap</button>`
+        }
+      </div>
+    `;
+  },
+
+  toggleCameraMode(enable) {
+    this.inCameraMode = enable;
+    if (enable) {
+      this.updateCameraSliders();
+      this.showScreen("cameraHud");
+    } else {
+      this.showScreen("explorationHud");
+    }
+  },
+
+  cycleCameraProfile() {
+    const unlockedCount = this.saveData.photos.length >= 3 ? 4 : 3;
+    this.camProfileIdx = (this.camProfileIdx + 1) % unlockedCount;
+    const p = CAMERA_PROFILES[this.camProfileIdx];
+    const sliderF = document.getElementById("sliderFocal");
+    sliderF.min = p.minF; sliderF.max = p.maxF; sliderF.value = p.defF;
+    this.updateCameraSliders();
+    this.showToast("Switched Camera Body: " + p.name);
+  },
+
+  cycleColorProfile() {
+    this.colorProfileIdx = (this.colorProfileIdx + 1) % COLOR_PROFILES.length;
+    this.updateCameraSliders();
+  },
+
+  toggleGrid() {
+    this.showGrid = !this.showGrid;
+    ["gridV1", "gridV2", "gridH1", "gridH2"].forEach(id => {
+      document.getElementById(id).style.display = this.showGrid ? "block" : "none";
+    });
+  },
+
+  updateCameraSliders() {
+    const f = parseFloat(document.getElementById("sliderFocal").value);
+    const ap = parseFloat(document.getElementById("sliderAperture").value);
+    const fd = parseFloat(document.getElementById("sliderFocusDist").value);
+    const ev = parseFloat(document.getElementById("sliderEv").value);
+    document.getElementById("lblFocal").textContent = Math.round(f) + "mm";
+    document.getElementById("lblAperture").textContent = "f/" + ap.toFixed(1);
+    document.getElementById("lblFocusDist").textContent = fd.toFixed(1) + "m";
+    document.getElementById("lblEv").textContent = (ev >= 0 ? "+" : "") + ev.toFixed(1) + " EV";
+  },
+
+  getFramedSubjectInfo() {
+    let bestPoi = POIS[0];
+    let bestScore = 999;
+    const camDirX = Math.sin(this.player.yaw);
+    const camDirZ = Math.cos(this.player.yaw);
+    POIS.forEach(p => {
+      const dx = p.x - this.player.x;
+      const dz = p.z - this.player.z;
+      const dist = Math.hypot(dx, dz);
+      const dot = (dx * camDirX + dz * camDirZ) / Math.max(0.1, dist);
+      if (dot > 0.70 && (1 - dot) * 20 + dist * 0.15 < bestScore) {
+        bestScore = (1 - dot) * 20 + dist * 0.15;
+        bestPoi = p;
+      }
+    });
+    const dist = Math.hypot(bestPoi.x - this.player.x, bestPoi.z - this.player.z);
+    return { poi: bestPoi, distance: dist };
+  },
+
+  capturePhoto() {
+    const flash = document.getElementById("shutterFlash");
+    flash.style.opacity = "0.88";
+    setTimeout(() => { flash.style.opacity = "0"; }, 180);
+
+    const framed = this.getFramedSubjectInfo();
+    const f = Math.round(parseFloat(document.getElementById("sliderFocal").value));
+    const ap = parseFloat(document.getElementById("sliderAperture").value).toFixed(1);
+    const fd = parseFloat(document.getElementById("sliderFocusDist").value);
+    const ev = parseFloat(document.getElementById("sliderEv").value);
+    const iso = parseInt(document.getElementById("selIso").value, 10);
+    const shutter = "1/" + document.getElementById("selShutter").value + "s";
+    const cam = CAMERA_PROFILES[this.camProfileIdx];
+    const col = COLOR_PROFILES[this.colorProfileIdx];
+
+    const focusDelta = Math.abs(framed.distance - fd);
+    const inSharpFocus = focusDelta < 3.8;
+    const score = Math.min(100, Math.round(76 + (inSharpFocus ? 14 : 0) + (Math.abs(ev) < 1.2 ? 10 : 2)));
+
+    const dataUrl = this.canvas.toDataURL("image/png");
+    const photoEntry = {
+      id: "LOL_" + Date.now(),
+      dataUrl,
+      subject: framed.poi.title,
+      poiId: framed.poi.id,
+      region: "North Kerala — Theyyam",
+      timestamp: new Date().toLocaleString(),
+      camera: cam.name,
+      focal: f + "mm",
+      aperture: "f/" + ap,
+      iso: "ISO " + iso,
+      shutter: shutter,
+      colorProfile: col.name,
+      score: score,
+      feedback: (inSharpFocus ? "Tack-sharp focus lock on subject" : "Soft atmospheric bokeh") + " • " + col.name
+    };
+
+    this.saveData.photos.unshift(photoEntry);
+    this.saveData.xp += 50;
+    if (!this.saveData.discoveredPois.includes(framed.poi.id)) {
+      this.saveData.discoveredPois.push(framed.poi.id);
+      this.saveData.xp += 75;
+    }
+    if (framed.poi.id === "poi_theyyam_performer" && !this.saveData.completedAssignments.includes("a1")) {
+      this.saveData.completedAssignments.push("a1");
+    }
+    if ((shutter === "1/30s" || shutter === "1/60s") && !this.saveData.completedAssignments.includes("a2")) {
+      this.saveData.completedAssignments.push("a2");
+    }
+    if (framed.poi.id === "poi_kavu_shrine" && !this.saveData.completedAssignments.includes("a3")) {
+      this.saveData.completedAssignments.push("a3");
+    }
+
+    this.lastCaptured = photoEntry;
+    this.saveLocal();
+
+    document.getElementById("previewImg").src = dataUrl;
+    document.getElementById("previewMetaText").innerHTML = `
+      <p><strong>Subject:</strong><br>${photoEntry.subject}</p><br>
+      <p><strong>Region:</strong><br>${photoEntry.region}</p><br>
+      <p><strong>Camera &amp; Optics:</strong><br>${photoEntry.camera}<br>${photoEntry.focal} &bull; ${photoEntry.aperture} &bull; ${photoEntry.shutter} &bull; ${photoEntry.iso}<br>${photoEntry.colorProfile}</p><br>
+      <p><strong>Composition Score:</strong> ${photoEntry.score} / 100<br>${photoEntry.feedback}</p>
+    `;
+    this.returnState = "cameraHud";
+    this.showScreen("photoPreviewScreen");
+  },
+
+  closePreviewToExploration() { this.showScreen("cameraHud"); },
+
+  openJournal() {
+    this.returnState = this.state;
+    const grid = document.getElementById("journalGridContainer");
+    grid.innerHTML = "";
+    if (this.saveData.photos.length === 0) {
+      grid.innerHTML = `<p style="grid-column:1/-1; color:var(--accent-gold); font-size:15px;">Your personal Photo Journal is currently empty. Enter North Kerala — Theyyam, press [V] for Camera Mode, and press [Space] to capture a photograph.</p>`;
+    } else {
+      this.saveData.photos.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "photo-card";
+        card.innerHTML = `
+          <img src="${p.dataUrl}" alt="${p.subject}" />
+          <strong style="font-size:13px; color:var(--accent-gold);">${p.subject}</strong>
+          <span style="font-size:11px; color:var(--text-muted);">${p.region} &bull; ${p.timestamp}</span>
+          <span style="font-size:11px; color:#d8c8b0;">${p.camera} (${p.focal}, ${p.aperture}, ${p.shutter})</span>
+        `;
+        grid.appendChild(card);
+      });
+    }
+    this.showScreen("journalScreen");
+  },
+
+  openCommunity() {
+    this.returnState = this.state;
+    const box = document.getElementById("communityFeedContainer");
+    box.innerHTML = "";
+    this.saveData.communityPosts.forEach(post => {
+      const row = document.createElement("div");
+      row.className = "panel-card";
+      row.style.padding = "12px 16px";
+      row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="color:var(--accent-gold); font-size:14px;">${post.author} &bull; ${post.region}</strong>
+            <p style="margin-top:4px; color:var(--text-cream);">${post.caption}</p>
+            <p style="font-size:11px; margin-top:4px;">Gear: ${post.gear}</p>
+          </div>
+          <button class="btn" onclick="GameApp.likePost('${post.id}')">&#9733; Appreciate (${post.likes})</button>
+        </div>
+      `;
+      box.appendChild(row);
+    });
+    this.showScreen("communityScreen");
+  },
+
+  likePost(id) {
+    const p = this.saveData.communityPosts.find(x => x.id === id);
+    if (p) { p.liked = !p.liked; p.likes += p.liked ? 1 : -1; this.saveLocal(); this.openCommunity(); }
+  },
+
+  publishLastCaptureToCommunity() {
+    if (!this.lastCaptured) return;
+    this.saveData.communityPosts.unshift({
+      id: "post_" + Date.now(),
+      author: "You (Local Player Capture)",
+      region: this.lastCaptured.region,
+      caption: "Captured " + this.lastCaptured.subject + " (" + this.lastCaptured.feedback + ")",
+      gear: `${this.lastCaptured.camera} • ${this.lastCaptured.focal} • ${this.lastCaptured.aperture} • ${this.lastCaptured.shutter}`,
+      likes: 1,
+      liked: true
+    });
+    this.saveLocal();
+    this.showToast("Published to Local Offline Community Demo Feed!");
+  },
+
+  closeModal() { this.showScreen(this.returnState || "mainMenuScreen"); },
+
+  inspectNearestPoi() {
+    let closest = POIS[0], bestD = 999;
+    POIS.forEach(p => {
+      const d = Math.hypot(p.x - this.player.x, p.z - this.player.z);
+      if (d < bestD) { bestD = d; closest = p; }
+    });
+    if (!this.saveData.discoveredPois.includes(closest.id)) {
+      this.saveData.discoveredPois.push(closest.id);
+      this.saveData.xp += 75;
+      this.saveLocal();
+    }
+    const card = document.getElementById("poiPopupCard");
+    card.style.display = "block";
+    card.innerHTML = `
+      <h2 style="margin-bottom:4px;">CULTURAL DISCOVERY: ${closest.title}</h2>
+      <p style="color:#e9f7ec; margin-bottom:6px;">${closest.verified}</p>
+      <p style="font-style:italic;">${closest.story}</p>
+    `;
+    clearTimeout(this._poiTimer);
+    this._poiTimer = setTimeout(() => { card.style.display = "none"; }, 7500);
+  },
+
+  updateMenuStats() {
+    document.getElementById("menuPhotoCount").textContent = this.saveData.photos.length;
+    const unlockedCams = this.saveData.photos.length >= 3 ? 4 : 3;
+    document.getElementById("menuStatsText").innerHTML =
+      `Photographer XP: ${this.saveData.xp} | Saved Photos: ${this.saveData.photos.length}<br>` +
+      `Cultural POIs Discovered: ${this.saveData.discoveredPois.length} / 5<br>` +
+      `Unlocked Cameras: ${unlockedCams} / 4`;
+  },
+
+  updateAssignmentsHUD() {
+    const el = document.getElementById("hudAssignmentsList");
+    if (!el) return;
+    const done = this.saveData.completedAssignments;
+    el.innerHTML =
+      `${done.includes("a1") ? "&#9989;" : "&#9744;"} I: Frame the Theyyam Performer<br>` +
+      `${done.includes("a2") ? "&#9989;" : "&#9744;"} II: Slow Shutter (1/30s–1/60s) Firelight Study<br>` +
+      `${done.includes("a3") ? "&#9989;" : "&#9744;"} III: Document the Kavu Laterite Shrine`;
+  },
+
+  loop(ts) {
+    const dt = Math.min(0.05, (ts - (this._lastTs || ts)) / 1000);
+    this._lastTs = ts;
+    this.time += dt;
+
+    if (this.state === "cinematicScreen") {
+      const elapsed = (ts - this.cinematicStart) / 1000;
+      this.player.x = Math.sin(elapsed * 0.45) * 4.8;
+      this.player.z = -9.5 + elapsed * 0.72;
+      this.player.yaw = -Math.sin(elapsed * 0.45) * 0.35;
+      this.player.pitch = 0.04;
+      if (elapsed > 6.5) this.skipCinematic();
+    } else if (this.state === "explorationHud" || this.state === "cameraHud") {
+      const speed = this.inCameraMode ? 2.4 : 4.6;
+      let fwd = 0, strafe = 0;
+      if (this.keys["KeyW"] || this.keys["ArrowUp"]) fwd += 1;
+      if (this.keys["KeyS"] || this.keys["ArrowDown"]) fwd -= 1;
+      if (this.keys["KeyD"] || this.keys["ArrowRight"]) strafe += 1;
+      if (this.keys["KeyA"] || this.keys["ArrowLeft"]) strafe -= 1;
+      if (this.keys["KeyQ"]) this.player.yaw -= dt * 1.4;
+      if (this.keys["KeyE"] && this.state === "cameraHud") this.player.yaw += dt * 1.4;
+
+      const sinY = Math.sin(this.player.yaw), cosY = Math.cos(this.player.yaw);
+      this.player.x = Math.max(-13.5, Math.min(13.5, this.player.x + (sinY * fwd + cosY * strafe) * speed * dt));
+      this.player.z = Math.max(-13.5, Math.min(12.5, this.player.z + (cosY * fwd - sinY * strafe) * speed * dt));
+
+      let closest = POIS[0], bestD = 999;
+      POIS.forEach(p => {
+        const d = Math.hypot(p.x - this.player.x, p.z - this.player.z);
+        if (d < bestD) { bestD = d; closest = p; }
+      });
+      const promptEl = document.getElementById("poiProximityPrompt");
+      if (promptEl) promptEl.textContent = `Nearest Cultural Landmark (${bestD.toFixed(1)}m): ${closest.title} — Press [E] to Inspect`;
+    }
+
+    this.renderRealistic3DScene();
+    requestAnimationFrame((nextTs) => this.loop(nextTs));
+  },
+
+  renderRealistic3DScene() {
+    const ctx = this.ctx;
+    const w = this.canvas.width, h = this.canvas.height;
+    const focal = this.inCameraMode ? parseFloat(document.getElementById("sliderFocal").value) : 40;
+    const ev = this.inCameraMode ? parseFloat(document.getElementById("sliderEv").value) : 0;
+    const iso = this.inCameraMode ? parseInt(document.getElementById("selIso").value, 10) : 800;
+    const colProf = this.inCameraMode ? COLOR_PROFILES[this.colorProfileIdx] : COLOR_PROFILES[0];
+    const camProf = CAMERA_PROFILES[this.camProfileIdx];
+
+    const exposureMult = Math.pow(2, ev * 0.55) * Math.pow(iso / 800, 0.25);
+    const fovScale = (focal / 35) * (h * 0.84);
+    const horizonY = h * 0.54 + this.player.pitch * h * 0.72;
+
+    // 1. Night Sky with Moonlit Haze & Warm Meleri Horizon Glow
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, Math.max(10, horizonY));
+    skyGrad.addColorStop(0, "#03050e");
+    skyGrad.addColorStop(0.55, "#0b0e20");
+    skyGrad.addColorStop(0.85, "#231214");
+    skyGrad.addColorStop(1, "#4c1c0d");
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // 2. Porous Malabar Laterite Courtyard Terrain with Warm Firelight Pool
+    const gndGrad = ctx.createLinearGradient(0, Math.max(0, horizonY), 0, h);
+    gndGrad.addColorStop(0, "#240e08");
+    gndGrad.addColorStop(0.35, "#42190e");
+    gndGrad.addColorStop(0.75, "#331209");
+    gndGrad.addColorStop(1, "#180804");
+    ctx.fillStyle = gndGrad;
+    ctx.fillRect(0, horizonY, w, h - horizonY);
+
+    const sinY = Math.sin(-this.player.yaw), cosY = Math.cos(-this.player.yaw);
+    const project = (wx, wy, wz) => {
+      const dx = wx - this.player.x;
+      const dy = wy - this.player.y;
+      const dz = wz - this.player.z;
+      const rx = dx * cosY - dz * sinY;
+      const rz = dx * sinY + dz * cosY;
+      if (rz <= 0.35) return null;
+      return {
+        sx: w * 0.5 + (rx / rz) * fovScale,
+        sy: horizonY - (dy / rz) * fovScale,
+        rz,
+        scale: fovScale / rz
+      };
+    };
+
+    // Depth-sorted render queue so background trees, shrine, lamps, performer, and embers layer with true 3D occlusion
+    const drawQueue = [];
+
+    // A. Curved Ring-Scarred Malabar Coconut Palms & Arched Pinnate Fronds
+    PALM_TREES.forEach((palm) => {
+      const baseP = project(palm.x, 0, palm.z);
+      if (!baseP) return;
+      drawQueue.push({
+        z: baseP.rz,
+        draw: () => {
+          const segs = 8;
+          let prev = baseP;
+          for (let s = 1; s <= segs; s++) {
+            const t = s / segs;
+            const sway = Math.sin(this.time * 1.3 + palm.phase) * 0.18 * t * t;
+            const cur = project(
+              palm.x + Math.sin(t * Math.PI * 0.8) * palm.leanX + sway,
+              t * palm.height,
+              palm.z + Math.sin(t * Math.PI * 0.8) * palm.leanZ
+            );
+            if (!cur) break;
+            ctx.strokeStyle = s % 2 === 0 ? "#241610" : "#1a0f0b";
+            ctx.lineWidth = Math.max(2, cur.scale * (0.28 * (1 - t * 0.52)));
+            ctx.beginPath(); ctx.moveTo(prev.sx, prev.sy); ctx.lineTo(cur.sx, cur.sy); ctx.stroke();
+            prev = cur;
+          }
+          // 8 Arched Pinnate Fronds with drooping leaflets
+          for (let f = 0; f < 8; f++) {
+            const fang = (f / 8) * Math.PI * 2 + palm.phase * 0.3;
+            const tip = project(
+              palm.x + palm.leanX * 0.7 + Math.cos(fang) * 2.8,
+              palm.height - 0.55 + Math.sin(f) * 0.3,
+              palm.z + palm.leanZ * 0.7 + Math.sin(fang) * 2.8
+            );
+            const mid = project(
+              palm.x + palm.leanX * 0.7 + Math.cos(fang) * 1.4,
+              palm.height + 0.55,
+              palm.z + palm.leanZ * 0.7 + Math.sin(fang) * 1.4
+            );
+            if (tip && mid) {
+              ctx.strokeStyle = "#0f2e15";
+              ctx.lineWidth = Math.max(2, prev.scale * 0.22);
+              ctx.beginPath();
+              ctx.moveTo(prev.sx, prev.sy);
+              ctx.quadraticCurveTo(mid.sx, mid.sy, tip.sx, tip.sy);
+              ctx.stroke();
+            }
+          }
+        }
+      });
+    });
+
+    // B. Sacred Banyan Tree (Aalmaram) & Stone Althara Platform (x=-8.5, z=10.5)
+    const banyanP = project(-8.5, 0, 10.5);
+    if (banyanP) {
+      drawQueue.push({
+        z: banyanP.rz,
+        draw: () => {
+          const s = banyanP.scale;
+          // Raised Laterite Althara Platform
+          ctx.fillStyle = "#4a1e12";
+          ctx.fillRect(banyanP.sx - s * 2.6, banyanP.sy - s * 0.7, s * 5.2, s * 0.7);
+          // Massive Fluted Trunk & 10 Hanging Aerial Prop Roots
+          ctx.fillStyle = "#26160f";
+          ctx.fillRect(banyanP.sx - s * 0.8, banyanP.sy - s * 5.8, s * 1.6, s * 5.2);
+          ctx.strokeStyle = "#331e14";
+          for (let r = -4; r <= 4; r++) {
+            ctx.lineWidth = Math.max(1.5, s * 0.09);
+            ctx.beginPath();
+            ctx.moveTo(banyanP.sx + r * s * 0.48, banyanP.sy - s * 5.2);
+            ctx.lineTo(banyanP.sx + r * s * 0.52, banyanP.sy - s * 0.6);
+            ctx.stroke();
+          }
+          // Layered Foliage Canopy Domes
+          ctx.fillStyle = "#0b2411";
+          ctx.beginPath();
+          ctx.arc(banyanP.sx, banyanP.sy - s * 6.2, s * 3.8, 0, Math.PI * 2);
+          ctx.arc(banyanP.sx - s * 2.2, banyanP.sy - s * 5.4, s * 2.6, 0, Math.PI * 2);
+          ctx.arc(banyanP.sx + s * 2.2, banyanP.sy - s * 5.4, s * 2.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    // C. Kavu Sreekovil Shrine with Double Terracotta Roof, Rosewood Pillars & 36 Chuttuvilakku Lamps (z=15.0)
+    const shrineP = project(0, 0, 15.0);
+    if (shrineP) {
+      drawQueue.push({
+        z: shrineP.rz,
+        draw: () => {
+          const s = shrineP.scale;
+          const sx = shrineP.sx, sy = shrineP.sy;
+
+          // Stepped Laterite Adhishthanam Plinth
+          ctx.fillStyle = "#4d1e12";
+          ctx.fillRect(sx - s * 4.8, sy - s * 0.85, s * 9.6, s * 0.85);
+          ctx.strokeStyle = "#290e07";
+          ctx.lineWidth = Math.max(1, s * 0.06);
+          ctx.strokeRect(sx - s * 4.8, sy - s * 0.85, s * 9.6, s * 0.85);
+
+          // Inner Laterite Sanctum Wall & Carved Wooden Azhi Screen
+          ctx.fillStyle = "#3b170e";
+          ctx.fillRect(sx - s * 3.4, sy - s * 3.55, s * 6.8, s * 2.7);
+
+          // Sanctum Doorway & Inner Deity Lamp Glow
+          ctx.fillStyle = "#1a0a06";
+          ctx.fillRect(sx - s * 0.75, sy - s * 2.95, s * 1.5, s * 2.1);
+          const sanctumGlow = ctx.createRadialGradient(sx, sy - s * 1.9, 2, sx, sy - s * 1.9, s * 2.2);
+          sanctumGlow.addColorStop(0, "rgba(255, 210, 110, 0.95)");
+          sanctumGlow.addColorStop(0.4, "rgba(255, 125, 25, 0.45)");
+          sanctumGlow.addColorStop(1, "rgba(255, 80, 10, 0)");
+          ctx.fillStyle = sanctumGlow;
+          ctx.fillRect(sx - s * 2.2, sy - s * 3.5, s * 4.4, s * 3.2);
+
+          // 36 Flickering Chuttuvilakku Oil Lamps across the Shrine Lattice Facade
+          for (let row = 0; row < 3; row++) {
+            const ly = sy - s * (1.35 + row * 0.68);
+            for (let col = -5; col <= 5; col++) {
+              if (Math.abs(col) <= 1) continue;
+              const lx = sx + col * s * 0.58;
+              const flk = 0.8 + Math.sin(this.time * 12 + row * 3 + col) * 0.2;
+              ctx.fillStyle = `rgba(255, 200, 80, ${flk})`;
+              ctx.beginPath();
+              ctx.arc(lx, ly, Math.max(1.8, s * 0.065), 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+
+          // 6 Carved Rosewood Pillars across Front Mandapam
+          ctx.fillStyle = "#1f0f09";
+          for (let p = -2.5; p <= 2.5; p += 1.0) {
+            const px = sx + p * s * 1.55;
+            ctx.fillRect(px - s * 0.14, sy - s * 3.55, s * 0.28, s * 2.7);
+            ctx.fillStyle = "#c9922c"; // Brass pillar band
+            ctx.fillRect(px - s * 0.16, sy - s * 2.3, s * 0.32, s * 0.09);
+            ctx.fillStyle = "#1f0f09";
+          }
+
+          // Lower Tier Sloped Scalloped Terracotta Roof
+          ctx.fillStyle = "#6e2513";
+          ctx.beginPath();
+          ctx.moveTo(sx - s * 5.6, sy - s * 3.45);
+          ctx.lineTo(sx - s * 3.8, sy - s * 4.65);
+          ctx.lineTo(sx + s * 3.8, sy - s * 4.65);
+          ctx.lineTo(sx + s * 5.6, sy - s * 3.45);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = "#3d1208";
+          ctx.lineWidth = Math.max(1.5, s * 0.08);
+          ctx.stroke();
+
+          // Upper Tier Gable Roof (Mukhappu)
+          ctx.fillStyle = "#7d2b16";
+          ctx.beginPath();
+          ctx.moveTo(sx - s * 3.9, sy - s * 4.60);
+          ctx.lineTo(sx, sy - s * 6.25);
+          ctx.lineTo(sx + s * 3.9, sy - s * 4.60);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Carved Rosewood Gable Triangle & 3 Golden Thazhikakudam Finials
+          ctx.fillStyle = "#29130b";
+          ctx.beginPath();
+          ctx.moveTo(sx - s * 1.8, sy - s * 4.65);
+          ctx.lineTo(sx, sy - s * 5.75);
+          ctx.lineTo(sx + s * 1.8, sy - s * 4.65);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = "#f0b938";
+          [-1.6, 0, 1.6].forEach(fx => {
+            const fy = fx === 0 ? sy - s * 6.55 : sy - s * 5.55;
+            ctx.beginPath();
+            ctx.arc(sx + fx * s, fy, Math.max(2.5, s * 0.16), 0, Math.PI * 2);
+            ctx.fill();
+          });
+        }
+      });
+    }
+
+    // D. Chenda Melam Percussion Ensemble (x=6.2, z=5.8)
+    [0, 1, 2, 3].forEach((idx) => {
+      const dp = project(5.8 + (idx % 2) * 0.8, 0, 4.4 + idx * 1.25);
+      if (!dp) return;
+      drawQueue.push({
+        z: dp.rz,
+        draw: () => {
+          const s = dp.scale;
+          // White Mundu with Kasavu gold border
+          ctx.fillStyle = "#e8e2d5";
+          ctx.fillRect(dp.sx - s * 0.24, dp.sy - s * 0.95, s * 0.48, s * 0.95);
+          ctx.fillStyle = "#d4a137";
+          ctx.fillRect(dp.sx - s * 0.24, dp.sy - s * 0.15, s * 0.48, s * 0.06);
+          // Upper Torso & Crimson Ponnada Shawl
+          ctx.fillStyle = "#6e422c";
+          ctx.fillRect(dp.sx - s * 0.22, dp.sy - s * 1.52, s * 0.44, s * 0.58);
+          ctx.fillStyle = "#b81d14";
+          ctx.fillRect(dp.sx - s * 0.24, dp.sy - s * 1.48, s * 0.48, s * 0.18);
+          // Head
+          ctx.fillStyle = "#5c3624";
+          ctx.beginPath(); ctx.arc(dp.sx, dp.sy - s * 1.68, s * 0.16, 0, Math.PI * 2); ctx.fill();
+          // Cylindrical Jackfruit-Wood Chenda Drum & Parchment Head
+          ctx.fillStyle = "#784421";
+          ctx.fillRect(dp.sx - s * 0.38, dp.sy - s * 1.22, s * 0.46, s * 0.28);
+          ctx.fillStyle = "#ede3ce";
+          ctx.beginPath(); ctx.ellipse(dp.sx - s * 0.38, dp.sy - s * 1.08, s * 0.08, s * 0.15, 0, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+    });
+
+    // E. 6 Lathe-Shaped 7-Wick Nilavilakku Standing Bronze Oil Lamps
+    [[-4.2, 5.2], [4.2, 5.2], [-4.8, 0.5], [4.8, 0.5], [-3.0, 11.2], [3.0, 11.2]].forEach(([lx, lz], idx) => {
+      const lp = project(lx, 0, lz);
+      if (!lp) return;
+      drawQueue.push({
+        z: lp.rz,
+        draw: () => {
+          const s = lp.scale;
+          const sx = lp.sx, sy = lp.sy;
+          // Ground light pool
+          const pool = ctx.createRadialGradient(sx, sy, 1, sx, sy, s * 1.8);
+          pool.addColorStop(0, "rgba(255, 150, 40, 0.32)");
+          pool.addColorStop(1, "rgba(255, 100, 10, 0)");
+          ctx.fillStyle = pool;
+          ctx.beginPath(); ctx.ellipse(sx, sy, s * 1.8, s * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+
+          // Stepped Bell-Metal Base, Knop Stem & Thattu Oil Reservoir
+          ctx.fillStyle = "#d49b35";
+          ctx.beginPath();
+          ctx.ellipse(sx, sy - s * 0.06, s * 0.34, s * 0.10, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillRect(sx - s * 0.06, sy - s * 1.42, s * 0.12, s * 1.36);
+          ctx.beginPath();
+          ctx.arc(sx, sy - s * 0.72, s * 0.11, 0, Math.PI * 2);
+          ctx.fill();
+          // Oil Bowl (Thattu)
+          ctx.fillStyle = "#e6af42";
+          ctx.beginPath();
+          ctx.ellipse(sx, sy - s * 1.40, s * 0.36, s * 0.10, 0, 0, Math.PI * 2);
+          ctx.fill();
+          // Top Koombu Swan Finial
+          ctx.fillRect(sx - s * 0.04, sy - s * 1.78, s * 0.08, s * 0.38);
+
+          // 5 Visible Flickering Cotton Wick Flames around the Thattu Rim
+          for (let wIdx = -2; wIdx <= 2; wIdx++) {
+            const wx = sx + wIdx * s * 0.13;
+            const wy = sy - s * 1.44 + Math.abs(wIdx) * s * 0.02;
+            const flk = 0.85 + Math.sin(this.time * 16 + idx * 2 + wIdx) * 0.18;
+            ctx.fillStyle = "#fff4bd";
+            ctx.beginPath();
+            ctx.ellipse(wx, wy - s * 0.07 * flk, Math.max(1.5, s * 0.04), Math.max(3, s * 0.10 * flk), 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Volumetric Lamp Glow Halo
+          const lg = ctx.createRadialGradient(sx, sy - s * 1.48, 1, sx, sy - s * 1.48, s * 1.35);
+          lg.addColorStop(0, "rgba(255, 225, 130, 0.75)");
+          lg.addColorStop(0.4, "rgba(255, 135, 25, 0.28)");
+          lg.addColorStop(1, "rgba(255, 90, 10, 0)");
+          ctx.fillStyle = lg;
+          ctx.beginPath(); ctx.arc(sx, sy - s * 1.48, s * 1.35, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+    });
+
+    // F. Meleri Ceremonial Bonfire (x=0, z=0.8) + 85 Rising 3D Ember Particles
+    const fireP = project(0, 0, 0.8);
+    if (fireP) {
+      drawQueue.push({
+        z: fireP.rz,
+        draw: () => {
+          const s = fireP.scale;
+          const sx = fireP.sx, sy = fireP.sy;
+          // Laterite Fire Ring & Crossed Coconut Logs
+          ctx.fillStyle = "#3b170e";
+          ctx.beginPath(); ctx.ellipse(sx, sy - s * 0.12, s * 1.25, s * 0.36, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#1c0e0a";
+          ctx.lineWidth = Math.max(3, s * 0.18);
+          for (let l = -2; l <= 2; l++) {
+            ctx.beginPath();
+            ctx.moveTo(sx + l * s * 0.35, sy - s * 0.10);
+            ctx.lineTo(sx - l * s * 0.25, sy - s * 0.55);
+            ctx.stroke();
+          }
+          // Glowing Ember Core & Multi-Tongue Flames
+          const flicker = 0.92 + Math.sin(this.time * 15) * 0.10;
+          const fg = ctx.createRadialGradient(sx, sy - s * 0.55, 2, sx, sy - s * 0.55, s * 2.8 * flicker);
+          fg.addColorStop(0, "rgba(255, 248, 195, 0.98)");
+          fg.addColorStop(0.25, "rgba(255, 145, 30, 0.82)");
+          fg.addColorStop(0.6, "rgba(215, 50, 8, 0.32)");
+          fg.addColorStop(1, "rgba(180, 20, 0, 0)");
+          ctx.fillStyle = fg;
+          ctx.beginPath(); ctx.arc(sx, sy - s * 0.55, s * 2.8 * flicker, 0, Math.PI * 2); ctx.fill();
+
+          for (let t = -3; t <= 3; t++) {
+            const tx = sx + t * s * 0.18;
+            const th = s * (0.65 + (3 - Math.abs(t)) * 0.22) * (0.85 + Math.sin(this.time * 18 + t * 2) * 0.2);
+            ctx.fillStyle = Math.abs(t) <= 1 ? "#fff3b0" : "#ff6d14";
+            ctx.beginPath();
+            ctx.moveTo(tx - s * 0.16, sy - s * 0.22);
+            ctx.quadraticCurveTo(tx + Math.sin(this.time * 10 + t) * s * 0.12, sy - s * 0.22 - th * 0.6, tx, sy - s * 0.22 - th);
+            ctx.quadraticCurveTo(tx - Math.sin(this.time * 10 + t) * s * 0.12, sy - s * 0.22 - th * 0.6, tx + s * 0.16, sy - s * 0.22);
+            ctx.fill();
+          }
+        }
+      });
+    }
+
+    // 3D Rising Ember Sparks
+    EMBER_PARTICLES.forEach((em, idx) => {
+      const curY = (em.y + this.time * em.speed) % 4.8;
+      const curAng = em.angle + this.time * em.drift;
+      const ex = Math.cos(curAng) * (em.radius + curY * 0.22);
+      const ez = 0.8 + Math.sin(curAng) * (em.radius + curY * 0.22);
+      const ep = project(ex, 0.35 + curY, ez);
+      if (ep) {
+        drawQueue.push({
+          z: ep.rz,
+          draw: () => {
+            const alpha = Math.max(0, 1 - curY / 4.8);
+            ctx.fillStyle = idx % 2 === 0 ? `rgba(255, 220, 95, ${alpha})` : `rgba(255, 110, 25, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(ep.sx, ep.sy, Math.max(1.4, ep.scale * em.size), 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+    });
+
+    // G. HIGH-DETAIL ARTICULATED THEYYAM PERFORMER (Mukhathezhuthu + Curved Thiru Mudi + Pleated Uduthukettu + Weapons/Torch)
+    const danceX = Math.sin(this.time * 1.45) * 1.15;
+    const danceZ = 4.2 + Math.cos(this.time * 0.75) * 0.55;
+    const perfBase = project(danceX, 0, danceZ);
+    if (perfBase) {
+      drawQueue.push({
+        z: perfBase.rz,
+        draw: () => {
+          const s = perfBase.scale;
+          const px = perfBase.sx;
+          const py = perfBase.sy;
+          const stepBounce = Math.abs(Math.sin(this.time * 5.2)) * s * 0.08;
+          const swayX = Math.sin(this.time * 2.6) * s * 0.06;
+          const bodyY = py - stepBounce;
+
+          // 1. Warm Firelight Halo Behind the Towering Thiru Mudi
+          const aura = ctx.createRadialGradient(px + swayX, bodyY - s * 2.2, s * 0.2, px + swayX, bodyY - s * 2.2, s * 2.4);
+          aura.addColorStop(0, "rgba(255, 135, 30, 0.42)");
+          aura.addColorStop(1, "rgba(255, 60, 0, 0)");
+          ctx.fillStyle = aura;
+          ctx.beginPath(); ctx.arc(px + swayX, bodyY - s * 2.2, s * 2.4, 0, Math.PI * 2); ctx.fill();
+
+          // 2. Towering Curved Thiru Mudi Sacred Headdress (Behind Head & Shoulders)
+          const mudiCx = px + swayX;
+          const mudiCy = bodyY - s * 1.82;
+          const mudiRx = s * 1.32;
+          const mudiRy = s * 1.68;
+
+          // Outer Crimson & Bamboo Arch Silhouette
+          ctx.fillStyle = "#b81109";
+          ctx.beginPath();
+          ctx.ellipse(mudiCx, mudiCy, mudiRx, mudiRy, 0, Math.PI * 1.08, -Math.PI * 0.08, false);
+          ctx.closePath();
+          ctx.fill();
+
+          // Concentric Sacred Rings (Gold Foil, Charcoal Black, Kuruthole Cream, Emerald Teal, Crimson)
+          const rings = [
+            { r: 0.96, col: "#f5b82e", w: 0.045 },
+            { r: 0.86, col: "#141214", w: 0.040 },
+            { r: 0.76, col: "#d91a0f", w: 0.055 },
+            { r: 0.64, col: "#147a68", w: 0.038 },
+            { r: 0.52, col: "#f7c642", w: 0.045 },
+            { r: 0.38, col: "#e32212", w: 0.050 }
+          ];
+          rings.forEach(rg => {
+            ctx.strokeStyle = rg.col;
+            ctx.lineWidth = Math.max(1.5, s * rg.w);
+            ctx.beginPath();
+            ctx.ellipse(mudiCx, mudiCy, mudiRx * rg.r, mudiRy * rg.r, 0, Math.PI * 1.05, -Math.PI * 0.05, false);
+            ctx.stroke();
+          });
+
+          // 24 Radiating Golden Bamboo Ribs (Kuzhal) across the Mudi
+          ctx.strokeStyle = "rgba(247, 195, 55, 0.72)";
+          ctx.lineWidth = Math.max(1, s * 0.018);
+          for (let sp = 0; sp <= 24; sp++) {
+            const ang = Math.PI * 1.04 - (sp / 24) * Math.PI * 1.08;
+            ctx.beginPath();
+            ctx.moveTo(mudiCx + Math.cos(ang) * mudiRx * 0.25, mudiCy - Math.sin(ang) * mudiRy * 0.25);
+            ctx.lineTo(mudiCx + Math.cos(ang) * mudiRx * 0.98, mudiCy - Math.sin(ang) * mudiRy * 0.98);
+            ctx.stroke();
+          }
+
+          // 15 Hanging Silver Chuttikuzhal Discs & Kuruthole Palm Fringe along the Outer Rim
+          for (let d = 0; d <= 14; d++) {
+            const ang = Math.PI * 1.02 - (d / 14) * Math.PI * 1.04;
+            const dx = mudiCx + Math.cos(ang) * mudiRx * 1.02;
+            const dy = mudiCy - Math.sin(ang) * mudiRy * 1.02;
+            ctx.fillStyle = "#eef4fa";
+            ctx.beginPath();
+            ctx.arc(dx, dy, Math.max(2, s * 0.048), 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // 3. Articulated Legs & Twin Rows of Golden Chilanka Ankle Bells
+          const legLiftL = Math.max(0, Math.sin(this.time * 5.2)) * s * 0.16;
+          const legLiftR = Math.max(0, -Math.sin(this.time * 5.2)) * s * 0.16;
+          [[-0.22, legLiftL], [0.22, legLiftR]].forEach(([lxOff, lift]) => {
+            const lx = px + lxOff * s;
+            ctx.fillStyle = "#c91e10";
+            ctx.fillRect(lx - s * 0.09, bodyY - s * 0.72 - lift, s * 0.18, s * 0.65);
+            // Twin rows of bronze Chilanka ankle bells
+            ctx.fillStyle = "#f2b632";
+            ctx.fillRect(lx - s * 0.11, bodyY - s * 0.24 - lift, s * 0.22, s * 0.06);
+            ctx.fillRect(lx - s * 0.11, bodyY - s * 0.15 - lift, s * 0.22, s * 0.06);
+          });
+
+          // 4. Multi-Pleated Uduthukettu Waist Garment (20 Vertical Pleats + Gold Aranjanam Belt)
+          const skirtTopY = bodyY - s * 1.15;
+          const skirtBotY = bodyY - s * 0.42;
+          const skirtHalfW = s * 0.68;
+
+          for (let pl = -10; pl <= 10; pl++) {
+            const x0 = px + (pl / 10) * skirtHalfW;
+            const x1 = px + ((pl + 1) / 10) * skirtHalfW;
+            ctx.fillStyle = pl % 2 === 0 ? "#d91b0f" : "#8f0e06";
+            ctx.beginPath();
+            ctx.moveTo(px + (pl / 10) * skirtHalfW * 0.62, skirtTopY);
+            ctx.lineTo(px + ((pl + 1) / 10) * skirtHalfW * 0.62, skirtTopY);
+            ctx.lineTo(x1, skirtBotY);
+            ctx.lineTo(x0, skirtBotY);
+            ctx.closePath();
+            ctx.fill();
+          }
+          // Gold Brocade Horizontal Bands & Aranjanam Waist Belt
+          ctx.fillStyle = "#f5b82e";
+          ctx.fillRect(px - skirtHalfW * 0.65, skirtTopY - s * 0.05, skirtHalfW * 1.3, s * 0.10);
+          ctx.fillRect(px - skirtHalfW * 0.92, skirtBotY - s * 0.10, skirtHalfW * 1.84, s * 0.07);
+
+          // 5. Upper Torso, Beaded Marathakam Breastplate & Tholvalayam Shoulder Epaulets
+          ctx.fillStyle = "#d9210f";
+          ctx.fillRect(px + swayX - s * 0.32, bodyY - s * 1.68, s * 0.64, s * 0.54);
+
+          // Ornate Circular/Shield Marathakam Breastplate
+          ctx.fillStyle = "#f2b429";
+          ctx.beginPath();
+          ctx.arc(px + swayX, bodyY - s * 1.42, s * 0.28, 0, Math.PI, false);
+          ctx.fill();
+          ctx.strokeStyle = "#198c49";
+          ctx.lineWidth = Math.max(1.5, s * 0.035);
+          ctx.stroke();
+
+          // Gilded Shoulder Epaulets (Tholvalayam)
+          [-0.38, 0.38].forEach(sxOff => {
+            ctx.fillStyle = "#f0b429";
+            ctx.beginPath();
+            ctx.arc(px + swayX + sxOff * s, bodyY - s * 1.62, s * 0.13, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          // 6. HIGH-DETAIL MUKHATHEZHUTHU PAINTED FACE & KADHILA EAR DISCS
+          const headX = px + swayX;
+          const headY = bodyY - s * 1.85;
+          const headR = s * 0.21;
+
+          // Protruding Kadhila Golden Ear Discs
+          ctx.fillStyle = "#f5b82e";
+          ctx.beginPath();
+          ctx.arc(headX - headR * 1.18, headY, headR * 0.42, 0, Math.PI * 2);
+          ctx.arc(headX + headR * 1.18, headY, headR * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Vermilion Chayilyam Base Face
+          ctx.fillStyle = "#e32410";
+          ctx.beginPath();
+          ctx.ellipse(headX, headY, headR, headR * 1.18, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Turmeric Manjal Cheek Spirals & Brow Arch
+          ctx.strokeStyle = "#fcce26";
+          ctx.lineWidth = Math.max(1.5, s * 0.024);
+          ctx.beginPath();
+          ctx.arc(headX, headY - headR * 0.12, headR * 0.78, Math.PI * 1.15, -Math.PI * 0.15, false);
+          ctx.stroke();
+
+          // Winged Black Karimashi Eye Mask (Prakkezhuthu)
+          ctx.fillStyle = "#0a0a0c";
+          ctx.beginPath();
+          ctx.ellipse(headX - headR * 0.42, headY - headR * 0.12, headR * 0.36, headR * 0.22, -0.25, 0, Math.PI * 2);
+          ctx.ellipse(headX + headR * 0.42, headY - headR * 0.12, headR * 0.36, headR * 0.22, 0.25, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Expressive White Sclera & Piercing Ritual Gaze
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(headX - headR * 0.38, headY - headR * 0.12, Math.max(1.5, headR * 0.14), 0, Math.PI * 2);
+          ctx.arc(headX + headR * 0.38, headY - headR * 0.12, Math.max(1.5, headR * 0.14), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#111";
+          ctx.beginPath();
+          ctx.arc(headX - headR * 0.38, headY - headR * 0.12, Math.max(1, headR * 0.07), 0, Math.PI * 2);
+          ctx.arc(headX + headR * 0.38, headY - headR * 0.12, Math.max(1, headR * 0.07), 0, Math.PI * 2);
+          ctx.fill();
+
+          // Forehead Gopuram Tilak & White Chutti Rice-Paste Crown Dots
+          ctx.fillStyle = "#fff8eb";
+          ctx.fillRect(headX - headR * 0.08, headY - headR * 0.72, headR * 0.16, headR * 0.42);
+
+          // Ritual Mouth & Curved White Fangs (Damshtra)
+          ctx.fillStyle = "#120808";
+          ctx.fillRect(headX - headR * 0.42, headY + headR * 0.42, headR * 0.84, headR * 0.22);
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(headX - headR * 0.32, headY + headR * 0.42, headR * 0.12, headR * 0.20);
+          ctx.fillRect(headX + headR * 0.20, headY + headR * 0.42, headR * 0.12, headR * 0.20);
+
+          // 7. Articulated Arms, Embossed Brass Paricha Shield, Curved Kadthala Sword & Flaming Chootu Torch
+          const armSwing = Math.cos(this.time * 5.2) * s * 0.14;
+
+          // Left Hand: Embossed Brass Paricha Shield
+          const shX = px + swayX - s * 0.62;
+          const shY = bodyY - s * 1.28 + armSwing;
+          ctx.fillStyle = "#d99b26";
+          ctx.beginPath(); ctx.arc(shX, shY, s * 0.28, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#b8170d";
+          ctx.lineWidth = Math.max(1.5, s * 0.04);
+          ctx.stroke();
+
+          // Right Hand: Curved Silver Kadthala Ritual Sword & Flaming Chootu Torch
+          const trX = px + swayX + s * 0.68;
+          const trY = bodyY - s * 1.48 - armSwing;
+          ctx.strokeStyle = "#dce6f2";
+          ctx.lineWidth = Math.max(2, s * 0.055);
+          ctx.beginPath();
+          ctx.moveTo(trX - s * 0.12, trY + s * 0.18);
+          ctx.quadraticCurveTo(trX + s * 0.12, trY - s * 0.22, trX + s * 0.04, trY - s * 0.58);
+          ctx.stroke();
+
+          // Torch Flame
+          const tg = ctx.createRadialGradient(trX, trY, 1, trX, trY, s * 0.85);
+          tg.addColorStop(0, "#fff8d6");
+          tg.addColorStop(0.35, "rgba(255, 135, 20, 0.88)");
+          tg.addColorStop(1, "rgba(255, 50, 0, 0)");
+          ctx.fillStyle = tg;
+          ctx.beginPath(); ctx.arc(trX, trY, s * 0.85, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+    }
+
+    // Sort back-to-front (Painter's Algorithm) and draw all 3D elements
+    drawQueue.sort((a, b) => b.z - a.z);
+    drawQueue.forEach(item => item.draw());
+
+    // Apply Camera Profile & Exposure / Color Profile Post-Overlay
+    if (exposureMult !== 1.0 || colProf.bw || camProf.vig > 0.12) {
+      if (exposureMult > 1.05) {
+        ctx.fillStyle = `rgba(255, 235, 200, ${Math.min(0.45, (exposureMult - 1) * 0.28)})`;
+        ctx.fillRect(0, 0, w, h);
+      } else if (exposureMult < 0.95) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.65, (1 - exposureMult) * 0.65)})`;
+        ctx.fillRect(0, 0, w, h);
+      }
+      if (colProf.bw) {
+        ctx.fillStyle = "rgba(18, 18, 22, 0.42)";
+        ctx.fillRect(0, 0, w, h);
+      }
+      const vg = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.25, w * 0.5, h * 0.5, w * 0.72);
+      vg.addColorStop(0, "rgba(0,0,0,0)");
+      vg.addColorStop(1, `rgba(0,0,0,${Math.min(0.75, camProf.vig * 1.6)})`);
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    if (this.inCameraMode) {
+      const framed = this.getFramedSubjectInfo();
+      const fd = parseFloat(document.getElementById("sliderFocusDist").value);
+      const inSharp = Math.abs(framed.distance - fd) < 3.8;
+      document.getElementById("vfTopTelemetry").textContent =
+        `CAMERA: ${camProf.name}   |   SUBJECT: ${framed.poi.title}   |   COLOR: ${colProf.name}`;
+      const ret = document.getElementById("focusReticle");
+      const lbl = document.getElementById("focusStatusLabel");
+      ret.style.borderColor = inSharp ? "#4cd964" : "#f5b041";
+      lbl.style.color = inSharp ? "#4cd964" : "#f5b041";
+      lbl.textContent = `${inSharp ? "[SHARP FOCUS LOCK]" : "[SOFT BOKEH]"} Subject Dist: ${framed.distance.toFixed(1)}m (Focus Plane: ${fd.toFixed(1)}m)`;
+    }
+  }
+};
+
+window.addEventListener("DOMContentLoaded", () => GameApp.init());
+</script>
+</body>
+</html>

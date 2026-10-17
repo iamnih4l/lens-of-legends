@@ -1,0 +1,10 @@
+# Vercel Deployment Ignore
+# Keeps web demo deployment under 100KB for instant deployments
+Assets/
+Packages/
+ProjectSettings/
+*.meta
+Lens of Legends.mp4
+README_SETUP_GUIDE.md
+.git/
+.gitignore
