@@ -3,19 +3,24 @@
 <div align="center">
 
 ![Lens of Legends Banner](https://img.shields.io/badge/Lens%20of%20Legends-Cultural%20Photography%20Adventure-orange?style=for-the-badge&logo=unity&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-lens--of--legends.vercel.app-7928CA?style=for-the-badge&logo=vercel&logoColor=white)](https://lens-of-legends.vercel.app/)
 
 [![Engine](https://img.shields.io/badge/Unity-2022.3%20LTS%20%7C%20Unity%206-blue?style=flat-square&logo=unity)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/Render%20Pipeline-URP%20%26%20Built--In%20Compatible-green?style=flat-square)](https://unity.com/)
 [![AI Engine](https://img.shields.io/badge/Engineered%20With-Gemini%20Argon%20Release-purple?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
 [![Status](https://img.shields.io/badge/Vertical%20Slice-Chapter%20I%20Playable-success?style=flat-square)](#playable-vertical-slice)
-[![Deploy with Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fiamnih4l%2Flens-of-legends)
 [![License](https://img.shields.io/badge/License-MIT-amber?style=flat-square)](LICENSE)
 
 *“In North Malabar, a photograph is not a trophy. It is a witness to centuries of living ritual, devotion, and fire.”*
 
-[🎬 Gameplay Video](#-gameplay--cinematic-video-demo) • [🎮 Playable Vertical Slice](#-playable-vertical-slice) • [📖 Story & Vision](#-the-story--world-vision) • [🤖 Engineered with Gemini Argon](#-engineered-with-gemini-argon--performance-evaluation) • [⚙️ Architecture & Systems](#-architecture--system-design) • [📸 Optical Camera Physics](#-optical-photography-simulation) • [🗺️ India-Wide Chapters](#-the-india-wide-cultural-journey) • [🚀 Quick Start](#-quickstart--developer-guide)
+[🌐 Play Live Demo](https://lens-of-legends.vercel.app/) • [🎬 Gameplay Video](#-gameplay--cinematic-video-demo) • [🎮 Playable Vertical Slice](#-playable-vertical-slice) • [📖 Story & Vision](#-the-story--world-vision) • [🤖 Engineered with Gemini Argon](#-engineered-with-gemini-argon--performance-evaluation) • [⚙️ Architecture & Systems](#-architecture--system-design) • [📸 Optical Camera Physics](#-optical-photography-simulation) • [🗺️ India-Wide Chapters](#-the-india-wide-cultural-journey) • [🚀 Quick Start](#-quickstart--developer-guide)
 
 </div>
+
+> [!TIP]
+> ### 🌐 Instant Playable Web Demo Live on Vercel
+> Play the Chapter I interactive 3D vertical slice directly in your browser with zero setup:  
+> 🔗 **[https://lens-of-legends.vercel.app](https://lens-of-legends.vercel.app/)**
 
 ---
 
@@ -230,10 +235,11 @@ In **Chapter I: North Kerala — Theyyam in the Sacred Grove**, players experien
 
 ## 🚀 Quickstart & Developer Guide
 
-### Option 1: Deploy Live Demo on Vercel (Instant Zero-Config)
-The repository includes a production-ready `vercel.json`, `index.html`, and `.vercelignore` configured specifically for instant static hosting:
-* **One-Click Deploy**: Click the [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fiamnih4l%2Flens-of-legends) button or import `https://github.com/iamnih4l/lens-of-legends` in your [Vercel Dashboard](https://vercel.com/new).
-* **Automatic Build**: No build command needed (Framework preset: **Other**). Vercel deploys the interactive 3D web slice in under 3 seconds!
+### Option 1: Play the Live Demo on Vercel (Instant Browser Access)
+The interactive 3D vertical slice is deployed live and ready to play:
+* 🌐 **Live Web Demo**: **[https://lens-of-legends.vercel.app](https://lens-of-legends.vercel.app/)**
+* Immediate 3D sacred grove walk, dynamic lighting, optical camera viewfinder with real-time DoF, and persistent photo journal.
+* If you want to deploy your own instance: click [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fiamnih4l%2Flens-of-legends) to clone and host it on your own Vercel account in under 3 seconds!
 
 ### Option 2: Run the Standalone Interactive Web Slice Locally (No Installation)
 Double-click `index.html` (or `Lens_of_Legends_Interactive_Vertical_Slice.html`) in any modern web browser. You can immediately walk through the Sacred Grove, raise your viewfinder, adjust shutter/aperture/ISO, snap photographs, and inspect the Personal Photo Journal.
