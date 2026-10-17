@@ -12,7 +12,23 @@
 
 *“In North Malabar, a photograph is not a trophy. It is a witness to centuries of living ritual, devotion, and fire.”*
 
-[🎮 Playable Vertical Slice](#-playable-vertical-slice) • [📖 Story & Vision](#-the-story--world-vision) • [🤖 Engineered with Gemini Argon](#-engineered-with-gemini-argon--performance-evaluation) • [⚙️ Architecture & Systems](#-architecture--system-design) • [📸 Optical Camera Physics](#-optical-photography-simulation) • [🗺️ India-Wide Chapters](#-the-india-wide-cultural-journey) • [🚀 Quick Start](#-quickstart--developer-guide)
+[🎬 Gameplay Video](#-gameplay--cinematic-video-demo) • [🎮 Playable Vertical Slice](#-playable-vertical-slice) • [📖 Story & Vision](#-the-story--world-vision) • [🤖 Engineered with Gemini Argon](#-engineered-with-gemini-argon--performance-evaluation) • [⚙️ Architecture & Systems](#-architecture--system-design) • [📸 Optical Camera Physics](#-optical-photography-simulation) • [🗺️ India-Wide Chapters](#-the-india-wide-cultural-journey) • [🚀 Quick Start](#-quickstart--developer-guide)
+
+</div>
+
+---
+
+## 🎬 Gameplay & Cinematic Video Demo
+
+<div align="center">
+
+https://github.com/iamnih4l/lens-of-legends/raw/main/Lens%20of%20Legends.mp4
+
+<video src="https://github.com/iamnih4l/lens-of-legends/raw/main/Lens%20of%20Legends.mp4" controls="controls" width="100%" style="max-width: 900px; border-radius: 8px; border: 1.5px solid #eb7a2e; box-shadow: 0 12px 32px rgba(0,0,0,0.65);">
+  Your browser does not support the video tag. <a href="https://github.com/iamnih4l/lens-of-legends/raw/main/Lens%20of%20Legends.mp4">Click here to watch or download the gameplay video (Lens of Legends.mp4)</a>.
+</video>
+
+*Real-time in-engine capture of Chapter I: North Kerala Sacred Grove (Kavu), Meleri fire pit, Chenda percussion, and optical viewfinder simulation.*
 
 </div>
 
